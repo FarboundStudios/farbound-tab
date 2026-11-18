@@ -2,14 +2,140 @@
   "apps": [
     {
       "id": "apptest",
-      "name": { "fr": "App Test", "en": "Test App" },
-      "description": { "fr": "App de démonstration : télémétrie en direct, saisie de texte, compteur.", "en": "Demo app: live telemetry, text input, counter." },
+      "name": {
+        "fr": "App Test",
+        "en": "Test App"
+      },
+      "description": {
+        "fr": "App de démonstration : télémétrie en direct, saisie de texte, compteur.",
+        "en": "Demo app: live telemetry, text input, counter."
+      },
       "author": "Farbound Studios",
       "version": "1.0.0",
       "emoji": "🧪",
       "color": "linear-gradient(145deg,#ffb347,#ff5f6d)",
       "type": "local",
       "entry": "apps/apptest/index.html"
+    },
+    {
+      "id": "farbound-studios",
+      "name": {
+        "fr": "Farbound Studios",
+        "en": "Farbound Studios"
+      },
+      "description": {
+        "fr": "Le site officiel de Farbound Studios.",
+        "en": "The official Farbound Studios website."
+      },
+      "author": "Farbound Studios",
+      "version": "1.0.0",
+      "icon": "apps/farbound-studios/icon.png",
+      "color": "#000",
+      "type": "web",
+      "entry": "https://farboundstudios.com/",
+      "iconFit": "cover"
+    },
+    {
+      "id": "youtube",
+      "name": {
+        "fr": "YouTube",
+        "en": "YouTube"
+      },
+      "description": {
+        "fr": "Regarder YouTube sur la tablette.",
+        "en": "Watch YouTube on the tablet."
+      },
+      "author": "Farbound Studios",
+      "version": "1.0.0",
+      "icon": "https://www.google.com/s2/favicons?domain=youtube.com&sz=128",
+      "color": "linear-gradient(145deg,#ff4e45,#c4150c)",
+      "type": "web",
+      "entry": "https://www.youtube.com/"
+    },
+    {
+      "id": "youtube-music",
+      "name": {
+        "fr": "YouTube Music",
+        "en": "YouTube Music"
+      },
+      "description": {
+        "fr": "Votre musique YouTube Music.",
+        "en": "Your YouTube Music library."
+      },
+      "author": "Farbound Studios",
+      "version": "1.0.0",
+      "icon": "https://www.google.com/s2/favicons?domain=music.youtube.com&sz=128",
+      "color": "linear-gradient(145deg,#ff4e45,#9c0f08)",
+      "type": "web",
+      "entry": "https://music.youtube.com/"
+    },
+    {
+      "id": "deezer-web",
+      "name": {
+        "fr": "Deezer",
+        "en": "Deezer"
+      },
+      "description": {
+        "fr": "Écoutez Deezer.",
+        "en": "Listen to Deezer."
+      },
+      "author": "Farbound Studios",
+      "version": "1.0.0",
+      "icon": "https://www.google.com/s2/favicons?domain=deezer.com&sz=128",
+      "color": "linear-gradient(145deg,#b05cff,#5b2bd6)",
+      "type": "web",
+      "entry": "https://www.deezer.com/"
+    },
+    {
+      "id": "spotify-web",
+      "name": {
+        "fr": "Spotify",
+        "en": "Spotify"
+      },
+      "description": {
+        "fr": "Écoutez Spotify.",
+        "en": "Listen to Spotify."
+      },
+      "author": "Farbound Studios",
+      "version": "1.0.0",
+      "icon": "https://www.google.com/s2/favicons?domain=spotify.com&sz=128",
+      "color": "linear-gradient(145deg,#2ee66b,#138a3c)",
+      "type": "web",
+      "entry": "https://open.spotify.com/"
+    },
+    {
+      "id": "twitch",
+      "name": {
+        "fr": "Twitch",
+        "en": "Twitch"
+      },
+      "description": {
+        "fr": "Regarder des streams Twitch.",
+        "en": "Watch Twitch streams."
+      },
+      "author": "Farbound Studios",
+      "version": "1.0.0",
+      "icon": "https://www.google.com/s2/favicons?domain=twitch.tv&sz=128",
+      "color": "linear-gradient(145deg,#9146ff,#5a1fc4)",
+      "type": "web",
+      "entry": "https://www.twitch.tv/"
+    },
+    {
+      "id": "radio-plus",
+      "name": {
+        "fr": "Radio",
+        "en": "Radio"
+      },
+      "description": {
+        "fr": "Radios du jeu + musique du dossier du jeu, avec mode aléatoire.",
+        "en": "Game radios + game music folder, with random mode."
+      },
+      "author": "Farbound Studios",
+      "version": "1.0.0",
+      "emoji": "📻",
+      "color": "linear-gradient(145deg,#a855f7,#6d28d9)",
+      "type": "local",
+      "entry": "apps/radio-plus/index.html"
     }
   ]
 }

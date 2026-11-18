@@ -49,6 +49,10 @@ Requirements: Windows 10/11, ETS2 (64-bit) with SDK plugin support, the Microsof
 
 See **[docs/CREATING_APPS.md](docs/CREATING_APPS.md)** — build an app in plain HTML/JS in a few minutes, test it on your tablet, then publish it to the Farbound Store with a pull request.
 
+## Versions & updates
+
+The tablet and each app are versioned (semver). **Settings → About** checks the [latest release](../../releases/latest) and tells you when a new tablet version is available; the Store shows **Update** on apps with a newer version. Details and the release procedure: [docs/VERSIONING.md](docs/VERSIONING.md) · [CHANGELOG.md](CHANGELOG.md).
+
 ## Repository layout
 
 ```

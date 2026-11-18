@@ -133,7 +133,8 @@ Open **Farbound Store → Test App → Install** to see a working example (telem
 | `id` | unique; lowercase letters, digits and `-` |
 | `name`, `description` | a string, or an object per language (`fr en de it es`) |
 | `version` | bump it to make the Store offer **Update** to people who installed the app |
-| `emoji` | the icon |
+| `emoji` | simple icon (an emoji) |
+| `icon` | logo image: path in this repo (e.g. `apps/my-app/icon.png`, 256×256 PNG/SVG) or `https://` URL; replaces `emoji`. `"iconFit": "cover"` makes it fill the tile, otherwise it is centered on the `color` background |
 | `color` | CSS color or gradient behind the icon |
 | `type` | `local` or `web` |
 | `entry` | path in this repo, or a full `https://` URL (always a full URL for `web` apps) |
