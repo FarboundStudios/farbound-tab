@@ -287,6 +287,12 @@ function renderGrid(){
   const d=$('dock');d.textContent='';
   for(const a of allApps().filter(a=>a.dock)){const e=icon(a,'ic');e.style.cursor='pointer';e.title=appName(a);e.onclick=()=>openApp(a.id);d.append(e)}
 }
+/* Apps distantes (Store / GitHub) : jsDelivr sert le HTML en text/plain -> on telecharge la page et on l'affiche en srcdoc, dans un bac a sable (pas d'acces au shell ni a ses donnees) ; les ressources relatives viennent de l'adresse d'origine (<base>). */
+async function loadRemote(f,url){
+  try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw 0;let t=await r.text();const base=url.replace(/[^/]*$/,'');const tag='<base href="'+base+'">';
+    t=/<head[^>]*>/i.test(t)?t.replace(/<head([^>]*)>/i,'<head$1>'+tag):tag+t;
+    f.setAttribute('sandbox','allow-scripts allow-forms allow-popups allow-modals');f.srcdoc=t}
+  catch{f.srcdoc='<body style="background:#101826;color:#fff;font-family:sans-serif;padding:24px">App unavailable (offline?)</body>'}}
 function pageFor(a){
   if(a.type==='system')return settingsPage();
   const el=document.createElement('div');el.className='page app';
@@ -296,7 +302,8 @@ function pageFor(a){
     el.innerHTML='<div class="native"><div><b></b>Ce service ne peut pas être intégré dans une page web (X-Frame-Options).<br>Dans l’hôte WebView2 de la tablette, il s’ouvre en vue native.<br><br><a target="_blank" rel="noopener"></a></div></div>';
     el.querySelector('b').textContent=a.name;const l=el.querySelector('a');l.href=a.url;l.textContent='Ouvrir dans le navigateur (test)';
   }else{
-    const f=document.createElement('iframe');f.src=a.url;f.allow='autoplay; encrypted-media; fullscreen';
+    const f=document.createElement('iframe');f.allow='autoplay; encrypted-media; fullscreen';
+    if(/^https?:\/\//i.test(a.url)&&!a.url.startsWith(location.origin))loadRemote(f,a.url);else f.src=a.url;
     f.addEventListener('load',()=>{post(f,{type:'telemetry',data:last});post(f,{type:'prefs',lang:curLang(),scale:uiScale})});el.append(f);
   }
   return el;

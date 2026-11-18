@@ -119,23 +119,6 @@
       "color": "linear-gradient(145deg,#9146ff,#5a1fc4)",
       "type": "web",
       "entry": "https://www.twitch.tv/"
-    },
-    {
-      "id": "radio-plus",
-      "name": {
-        "fr": "Radio",
-        "en": "Radio"
-      },
-      "description": {
-        "fr": "Radios du jeu + musique du dossier du jeu, avec mode aléatoire.",
-        "en": "Game radios + game music folder, with random mode."
-      },
-      "author": "Farbound Studios",
-      "version": "1.0.0",
-      "emoji": "📻",
-      "color": "linear-gradient(145deg,#a855f7,#6d28d9)",
-      "type": "local",
-      "entry": "apps/radio-plus/index.html"
     }
   ]
 }
