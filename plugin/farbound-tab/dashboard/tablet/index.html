@@ -170,7 +170,7 @@ const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{retur
 const store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
 let userApps=load('tablet.apps',[]);
 /* ===== Versions : version de la tablette + verification des mises a jour (GitHub Releases) ===== */
-const TABLET_VERSION='1.0.0',TABLET_REPO='FarboundStudios/farbound-tab';
+const TABLET_VERSION='1.0.0-beta',TABLET_REPO='FarboundStudios/farbound-tab';
 const verParts=v=>String(v||'0').replace(/^v/i,'').split(/[.+-]/).slice(0,3).map(x=>parseInt(x,10)||0);
 const cmpVer=(a,b)=>{const x=verParts(a),y=verParts(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return(x[i]||0)>(y[i]||0)?1:-1}return 0};
 let updInfo=load('tab.update',null),updState=updInfo&&cmpVer(updInfo.tag,TABLET_VERSION)>0?'avail':'idle';
