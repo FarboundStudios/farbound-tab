@@ -1,0 +1,15 @@
+Farbound Tab — manual install
+=============================
+Copy the CONTENT of this folder into:
+  <Steam>\steamapps\common\Euro Truck Simulator 2\bin\win_x64\plugins\
+(create "plugins" if it does not exist). You should end up with:
+  plugins\farbound-tab.dll
+  plugins\farbound-tab.ini
+  plugins\farbound-tab\dashboard\...
+
+Start the game and accept the SDK plugin confirmation on first launch.
+Press Insert in the cab to open the tablet window. Game in windowed / borderless mode.
+Edit farbound-tab.ini to change keys or the startup app. Logs: plugins\farbound-tab\ui-probe.log
+
+Upgrading: close the game, then overwrite farbound-tab.dll and the farbound-tab\dashboard folder.
+If you used a pre-release build, delete heavymp-ui-probe.dll and heavymp-tablet.ini.

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Farbound Drive</title>
+<script src="variants.js"></script>
+<style>
+:root{--accent:#f0a30a;--bg1:#0b0e14;--bg2:#161b25;--text:#fff;--sub:#8e98a8;--ok:#3ddc84;--warn:#ffb300;--bad:#ff4d4d;--u:1}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#000;color:var(--text);font-family:"Segoe UI Variable","Segoe UI",system-ui,sans-serif;user-select:none}
+#root{position:fixed;inset:0;background:radial-gradient(900px 500px at 50% 120%,color-mix(in srgb,var(--accent) 30%,transparent),transparent 60%),linear-gradient(160deg,var(--bg1),var(--bg2));overflow:hidden}
+.gauge{position:absolute;width:calc(380px*var(--u));height:calc(380px*var(--u))}
+.gauge svg{width:100%;height:100%}
+.gauge .trk{fill:none;stroke:#ffffff18;stroke-width:16;stroke-linecap:round}
+.gauge .val{fill:none;stroke:var(--accent);stroke-width:16;stroke-linecap:round;transition:stroke-dashoffset .12s linear}
+.gauge .red{fill:none;stroke:var(--bad);stroke-width:16;stroke-linecap:round;opacity:.9}
+#g-rpm{left:calc(18px*var(--u));top:calc(70px*var(--u))}
+#g-spd{display:none}
+.c{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+#speed{left:50%;top:calc(120px*var(--u));transform:translateX(-50%);width:calc(300px*var(--u))}
+#speed b{font-size:calc(150px*var(--u));font-weight:700;line-height:.9;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+#speed small{font-size:calc(22px*var(--u));color:var(--sub);letter-spacing:.2em;text-transform:uppercase;margin-top:calc(4px*var(--u))}
+#gear{left:calc(106px*var(--u));top:calc(190px*var(--u));width:calc(200px*var(--u))}
+#gear b{font-size:calc(96px*var(--u));font-weight:800;color:var(--accent);line-height:1}
+#gear small{color:var(--sub);font-size:calc(18px*var(--u));letter-spacing:.15em}
+#rpmv{left:calc(106px*var(--u));top:calc(300px*var(--u));width:calc(200px*var(--u));font-size:calc(24px*var(--u));font-weight:600}
+#rpmv span{color:var(--sub);font-size:calc(14px*var(--u));margin-left:4px}
+#right{right:calc(30px*var(--u));top:calc(120px*var(--u));width:calc(290px*var(--u));align-items:stretch;gap:calc(14px*var(--u))}
+.bar{display:grid;grid-template-columns:calc(74px*var(--u)) 1fr calc(66px*var(--u));align-items:center;gap:calc(10px*var(--u));font-size:calc(17px*var(--u))}
+.bar i{display:block;height:calc(12px*var(--u));border-radius:8px;background:#ffffff1a;overflow:hidden}.bar i s{display:block;height:100%;width:50%;background:var(--accent);border-radius:8px;transition:width .3s}
+.bar span{color:var(--sub);text-transform:uppercase;letter-spacing:.08em;font-size:calc(13px*var(--u))}.bar b{text-align:right;font-variant-numeric:tabular-nums}
+#top{left:0;right:0;top:calc(12px*var(--u));flex-direction:row;justify-content:space-between;padding:0 calc(28px*var(--u));font-size:calc(22px*var(--u));font-weight:600}
+#brand{letter-spacing:.35em;text-transform:uppercase;color:var(--accent);font-weight:800}
+#bottom{left:0;right:0;bottom:calc(14px*var(--u));flex-direction:row;gap:calc(26px*var(--u))}
+.limit{width:calc(74px*var(--u));height:calc(74px*var(--u));border-radius:50%;background:#fff;border:calc(8px*var(--u)) solid #e53935;color:#111;display:grid;place-items:center;font-weight:800;font-size:calc(28px*var(--u))}
+.chip{font-size:calc(20px*var(--u));padding:calc(8px*var(--u)) calc(16px*var(--u));border-radius:14px;background:#ffffff12;color:var(--sub);font-weight:600}
+.chip.on{background:var(--accent);color:#111}
+.blk{font-size:calc(46px*var(--u));color:#ffffff22;transition:color .1s}.blk.on{color:var(--ok);animation:bl .7s steps(2) infinite}
+@keyframes bl{50%{opacity:.25}}
+.hide{display:none!important}
+#rpmbar{position:absolute;left:calc(28px*var(--u));right:calc(28px*var(--u));top:calc(58px*var(--u));height:calc(16px*var(--u));border-radius:10px;background:#ffffff18;overflow:hidden;display:none}
+#rpmbar s{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 50%,#fff));transition:width .1s linear}
+/* dispositions */
+body.l-wide #g-rpm,body.l-wide #g-spd{display:none}body.l-wide #rpmbar{display:block}
+body.l-wide #speed{left:calc(28px*var(--u));transform:none;top:calc(105px*var(--u));width:calc(380px*var(--u));align-items:flex-start}body.l-wide #speed b{font-size:calc(200px*var(--u))}
+body.l-wide #gear{left:calc(430px*var(--u));top:calc(120px*var(--u));width:calc(160px*var(--u))}body.l-wide #rpmv{left:calc(430px*var(--u));top:calc(230px*var(--u));width:calc(160px*var(--u))}
+body.l-wide #right{right:calc(26px*var(--u));top:calc(110px*var(--u));width:calc(380px*var(--u))}
+body.l-tech #rpmbar{display:block;top:calc(60px*var(--u))}body.l-tech #g-rpm{left:calc(18px*var(--u));width:calc(330px*var(--u));height:calc(330px*var(--u));top:calc(110px*var(--u))}
+body.l-tech .gauge .trk{stroke-width:6;stroke-dasharray:2 5}body.l-tech .gauge .val,body.l-tech .gauge .red{stroke-width:6}
+body.l-tech #speed{left:calc(400px*var(--u));top:calc(130px*var(--u));transform:none;width:calc(260px*var(--u))}body.l-tech #speed b{font-size:calc(120px*var(--u))}
+body.l-tech #gear{left:calc(78px*var(--u));top:calc(195px*var(--u));width:calc(200px*var(--u))}body.l-tech #rpmv{left:calc(78px*var(--u));top:calc(295px*var(--u));width:calc(200px*var(--u))}
+body.l-tech #right{right:calc(16px*var(--u));top:calc(190px*var(--u));width:calc(300px*var(--u))}
+body.l-minimal #g-rpm,body.l-minimal #g-spd,body.l-minimal #right,body.l-minimal #gear,body.l-minimal #rpmv{display:none}
+body.l-minimal #speed{top:calc(95px*var(--u))}body.l-minimal #speed b{font-size:calc(230px*var(--u))}
+body.l-sport #speed{left:calc(520px*var(--u));top:calc(115px*var(--u));transform:none;width:calc(250px*var(--u))}body.l-sport #speed b{font-size:calc(112px*var(--u))}body.l-sport #right{width:calc(225px*var(--u));right:calc(14px*var(--u));top:calc(125px*var(--u))}body.l-sport .bar{grid-template-columns:calc(58px*var(--u)) 1fr calc(58px*var(--u));font-size:calc(14px*var(--u))}body.l-sport #g-rpm{left:calc(18px*var(--u));width:calc(480px*var(--u));height:calc(480px*var(--u));top:calc(20px*var(--u))}
+body.l-sport #gear{left:calc(158px*var(--u));top:calc(150px*var(--u))}body.l-sport #rpmv{left:calc(158px*var(--u));top:calc(260px*var(--u))}
+</style></head><body class="l-classic">
+<div id="root">
+ <div class="gauge" id="g-rpm"><svg viewBox="0 0 200 200"><path class="trk" d="M30 150 A80 80 0 1 1 170 150"/><path class="red" id="rpmred" d="M30 150 A80 80 0 1 1 170 150" stroke-dasharray="0 999"/><path class="val" id="rpmarc" d="M30 150 A80 80 0 1 1 170 150" stroke-dasharray="0 999"/></svg></div>
+ <div class="gauge" id="g-spd"><svg viewBox="0 0 200 200"><path class="trk" d="M30 150 A80 80 0 1 1 170 150"/><path class="val" id="spdarc" d="M30 150 A80 80 0 1 1 170 150" stroke-dasharray="0 999"/></svg></div>
+ <div class="c" id="gear"><b id="gearv">N</b><small>GEAR</small></div>
+ <div class="c" id="rpmv"><div><span id="rpmn">0</span><span>rpm</span></div></div>
+ <div class="c" id="speed"><b id="spdv">0</b><small id="spdu">km/h</small></div>
+ <div class="c" id="right">
+  <div class="bar" id="b-fuel"><span id="lf">Fuel</span><i><s id="fuelb"></s></i><b id="fuelv">0</b></div>
+  <div class="bar" id="b-adb"><span>AdBlue</span><i><s id="adbb"></s></i><b id="adbv">0</b></div>
+  <div class="bar" id="b-tmp"><span id="lt">Temp</span><i><s id="tmpb"></s></i><b id="tmpv">0</b></div>
+  <div class="bar" id="b-rng"><span id="lr">Range</span><i><s id="rngb"></s></i><b id="rngv">0</b></div>
+ </div>
+ <div id="rpmbar"><s id="rpmbars"></s></div>
+ <div class="c" id="top"><span id="clock">--:--</span><span id="brand">FARBOUND</span><span id="odo">0 km</span></div>
+ <div class="c" id="bottom"><span class="blk" id="lbl">◀</span><span class="limit" id="limit">–</span><span class="chip" id="cruise">CRUISE</span><span class="chip" id="pbrake">P</span><span class="chip" id="hib">HIGH BEAM</span><span class="blk" id="rbl">▶</span></div>
+</div>
+<script>
+'use strict';
+/* Farbound Drive : tableau de bord de remplacement du cluster, un style par marque, personnalisable (Reglages > Farbound Drive de la tablette).
+   Donnees : messages du DLL ('tel:{json}') ; config : localStorage 'drive.cfg' (partage avec la tablette, meme origine) + message 'dcfg:{json}'. */
+const $=i=>document.getElementById(i);
+let USERVARS=[];
+const allVariants=()=>(window.DRIVE_VARIANTS||[]).concat(USERVARS);
+const DEFCFG={variant:'auto',accent:'',layout:'',units:'kmh',show:{limit:true,clock:true,odo:true,fuel:true,adblue:true,temp:true,range:true,cruise:true,gear:true,rpm:true}};
+let cfg=loadCfg(),T={speed:0,rpm:0,rpmMax:2500,gear:0,fuel:0,fuelCap:600,fuelRange:0,limit:0,cruise:0,wtemp:0,adblue:0,odo:0,lbl:0,rbl:0,hib:0,pbrake:0,brand:'',brandName:''};
+function loadCfg(){try{const j=JSON.parse(localStorage.getItem('drive.cfg')||'null');if(j){if(j.theme&&!j.variant)j.variant='auto';return Object.assign(structuredClone(DEFCFG),j,{show:Object.assign({},DEFCFG.show,j.show||{})})}}catch{}return structuredClone(DEFCFG)}
+function pickVariant(){
+  const all=allVariants();
+  if(cfg.variant&&cfg.variant!=='auto'){const v=all.find(x=>x.id===cfg.variant);if(v)return v}
+  const byBrand=all.find(x=>(x.brands||[]).includes(T.brand));
+  return byBrand||all[0]||{id:'x',name:'Farbound',layout:'classic',accent:'#f0a30a',bg1:'#0b0e14',bg2:'#161b25'};
+}
+let extraCss=null;
+function applyTheme(){
+  const v=pickVariant(),r=document.documentElement.style;
+  r.setProperty('--accent',cfg.accent||v.accent||'#f0a30a');r.setProperty('--bg1',v.bg1||'#0b0e14');r.setProperty('--bg2',v.bg2||'#161b25');
+  document.body.style.fontFamily=v.font||'';
+  if(!extraCss){extraCss=document.createElement('style');document.head.append(extraCss)}extraCss.textContent=(typeof v.css==='string')?v.css:'';
+  $('brand').textContent=(cfg.variant==='auto'&&T.brandName)?T.brandName:(v.name||'Farbound').split('·')[0].trim();
+  const lay=(cfg.layout&&window.DRIVE_LAYOUTS.includes(cfg.layout))?cfg.layout:(window.DRIVE_LAYOUTS.includes(v.layout)?v.layout:'classic');
+  document.body.className='l-'+lay;
+  const sh=cfg.show;const hid=(id,on)=>$(id).classList.toggle('hide',!on);
+  hid('limit',sh.limit);hid('clock',sh.clock);hid('odo',sh.odo);hid('b-fuel',sh.fuel);hid('b-adb',sh.adblue);hid('b-tmp',sh.temp);hid('b-rng',sh.range);hid('cruise',sh.cruise);hid('gear',sh.gear);hid('rpmv',sh.rpm);hid('g-rpm',sh.rpm&&lay!=='minimal');
+  $('spdu').textContent=cfg.units==='mph'?'mph':'km/h';
+}
+async function loadUserVariants(files){
+  const out=[];
+  for(const f of files||[]){try{const j=await (await fetch('https://user.local/drive-variants/'+encodeURIComponent(f),{cache:'no-store'})).json();if(j&&j.id)out.push(j)}catch{}}
+  USERVARS=out;applyTheme();
+}
+function fit(){const u=Math.min(innerWidth/1024,innerHeight/512);document.documentElement.style.setProperty('--u',u)}
+addEventListener('resize',fit);fit();
+const ARC=(2*Math.PI*80)*(260/360); // longueur de l'arc (260 degres)
+function arc(id,f){f=Math.max(0,Math.min(1,f));$(id).setAttribute('stroke-dasharray',(ARC*f)+' 999')}
+const k=v=>cfg.units==='mph'?v*0.621371:v;
+function draw(){
+  const spd=k(T.speed);
+  $('spdv').textContent=Math.round(spd);
+  arc('spdarc',spd/(cfg.units==='mph'?100:160));
+  const rm=T.rpmMax||2500;arc('rpmarc',T.rpm/rm);$('rpmbars').style.width=Math.max(0,Math.min(100,T.rpm/rm*100))+'%';
+  $('rpmred').setAttribute('stroke-dasharray','0 '+(ARC*.86)+' '+(ARC*.14)+' 999');
+  $('rpmn').textContent=Math.round(T.rpm);
+  $('gearv').textContent=T.gear<0?'R':T.gear===0?'N':T.gear;
+  const fp=T.fuelCap?T.fuel/T.fuelCap:0;$('fuelb').style.width=(fp*100)+'%';$('fuelv').textContent=Math.round(T.fuel)+' L';$('fuelb').style.background=fp<.15?'var(--bad)':fp<.3?'var(--warn)':'var(--accent)';
+  $('adbb').style.width=Math.min(100,T.adblue/ (T.fuelCap?T.fuelCap*0.1:60)*100)+'%';$('adbv').textContent=Math.round(T.adblue)+' L';
+  $('tmpb').style.width=Math.max(0,Math.min(100,(T.wtemp-40)/70*100))+'%';$('tmpv').textContent=Math.round(T.wtemp)+'°';$('tmpb').style.background=T.wtemp>100?'var(--bad)':T.wtemp>95?'var(--warn)':'var(--accent)';
+  $('rngb').style.width=Math.min(100,T.fuelRange/1500*100)+'%';$('rngv').textContent=Math.round(cfg.units==='mph'?T.fuelRange*0.621371:T.fuelRange)+(cfg.units==='mph'?' mi':' km');
+  $('limit').textContent=T.limit>0?Math.round(k(T.limit)):'–';
+  $('cruise').classList.toggle('on',T.cruise>0);$('cruise').textContent=T.cruise>0?'CRUISE '+Math.round(k(T.cruise)):'CRUISE';
+  $('pbrake').classList.toggle('on',!!T.pbrake);$('hib').classList.toggle('on',!!T.hib);
+  $('lbl').classList.toggle('on',!!T.lbl);$('rbl').classList.toggle('on',!!T.rbl);
+  $('odo').textContent=Math.round(cfg.units==='mph'?T.odo*0.621371:T.odo)+(cfg.units==='mph'?' mi':' km');
+  const d=new Date();$('clock').textContent=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function onTel(j){if(!j||!j.live)return;const nb=T.brand;Object.assign(T,j);if(T.brand!==nb)applyTheme()}
+if(window.chrome&&chrome.webview)chrome.webview.addEventListener('message',e=>{const d=e.data;if(typeof d!=='string')return;
+  if(d.startsWith('tel:')){try{onTel(JSON.parse(d.slice(4)))}catch{}}
+  else if(d.startsWith('variants:')){try{loadUserVariants(JSON.parse(d.slice(9)))}catch{}}
+  else if(d.startsWith('dcfg:')){try{cfg=Object.assign(structuredClone(DEFCFG),JSON.parse(d.slice(5)));cfg.show=Object.assign({},DEFCFG.show,cfg.show||{});applyTheme()}catch{}}});
+addEventListener('message',e=>{const m=e.data;if(m&&m.tablet&&m.type==='telemetry')onTel(m.data)});
+addEventListener('storage',e=>{if(e.key==='drive.cfg'){cfg=loadCfg();applyTheme()}});
+if(new URLSearchParams(location.search).has('demo')){let t0=0;setInterval(()=>{t0+=.05;T.live=true;T.speed=60+40*Math.sin(t0);T.rpm=1100+500*Math.sin(t0);T.rpmMax=2200;T.gear=8;T.fuel=420;T.fuelCap=765;T.fuelRange=1300;T.limit=80;T.cruise=Math.sin(t0)>0?80:0;T.wtemp=88;T.adblue=40;T.odo=118234;T.lbl=Math.sin(t0*2)>.6;{const b=new URLSearchParams(location.search).get('brand')||'renault';if(T.brand!==b){T.brand=b;applyTheme()}}},50)}
+applyTheme();setInterval(draw,50);try{chrome.webview.postMessage('cmd:variants?')}catch{}
+</script></body></html>

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Farbound Store</title>
+<style>
+:root{--ac:#26c6da;--bg:#071a1d;--card:#0e2a2f;--card2:#14393f;--sub:#8fb5ba}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:#fff;font-family:"Segoe UI Variable","Segoe UI",system-ui,sans-serif;user-select:none;overflow:hidden}
+#app{display:grid;grid-template-rows:auto auto 1fr;height:100%;padding:14px 22px 10px;gap:10px}
+header{display:flex;align-items:center;gap:14px}
+header h1{margin:0;font-size:22px;font-weight:700}header h1 small{display:block;font-size:12px;font-weight:500;color:var(--sub)}
+#q{flex:1;background:var(--card);border:2px solid transparent;border-radius:14px;color:#fff;font-size:16px;padding:10px 14px;outline:none}
+#q:focus{border-color:var(--ac)}
+.tabs{display:flex;gap:8px}
+.tab{background:var(--card);color:#fff;border:0;border-radius:14px;padding:8px 16px;font-size:15px;cursor:pointer}.tab.on{background:var(--ac);color:#02272c;font-weight:700}
+#list{overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;align-content:start;padding-right:4px}
+.c{background:var(--card);border-radius:18px;padding:14px;display:flex;gap:14px;align-items:center}
+.ic{width:60px;height:60px;border-radius:17px;flex:none;display:grid;place-items:center;font-size:30px;background:linear-gradient(145deg,#5b6b86,#323c50)}
+.ic svg{width:30px;height:30px;fill:#fff}
+.m{flex:1;min-width:0}.m b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.m small{display:block;color:var(--sub);font-size:13px;margin-top:2px;line-height:1.25;max-height:2.5em;overflow:hidden}
+.m i{font-style:normal;color:var(--sub);font-size:11px}
+.b{border:0;border-radius:20px;padding:9px 18px;font-size:14px;font-weight:700;cursor:pointer;background:var(--ac);color:#02272c;white-space:nowrap}
+.b.g{background:var(--card2);color:#fff}.b.d{background:#4a1f26;color:#ffb4bd}
+#msg{color:var(--sub);padding:18px;font-size:15px}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--ac);border-radius:6px;border:2px solid var(--bg)}::-webkit-scrollbar-thumb:hover{background:#fff}
+</style></head><body>
+<div id="app">
+ <header><h1>Farbound Store<small id="sub"></small></h1><input id="q" autocomplete="off"></header>
+ <div class="tabs"><button class="tab on" id="t-all"></button><button class="tab" id="t-inst"></button></div>
+ <div id="list"></div>
+</div>
+<script>
+'use strict';
+/* Farbound Store : catalogue d'apps heberge sur GitHub (apps uniquement, dans le code source du depot).
+   Depot : STORE_REPO (a ajuster quand le nom definitif du plugin sera fixe). Les versions de la tablette sont dans les Releases du depot.
+   Catalogue distant : <STORE_BASE>apps/index.json ; repli local : catalog.json (apps fournies avec la tablette). */
+const STORE_REPO='FarboundStudios/farbound-tab',STORE_BRANCH='main';
+const STORE_BASE='https://cdn.jsdelivr.net/gh/'+STORE_REPO+'@'+STORE_BRANCH+'/';
+const L={
+ fr:{sub:'Applications pour la tablette',search:'Rechercher une app…',all:'Boutique',inst:'Installées',install:'Installer',open:'Ouvrir',remove:'Supprimer',update:'Mettre à jour',needs:'Tablette ≥',offline:'Catalogue en ligne indisponible : apps fournies uniquement.',none:'Aucune app.',loading:'Chargement…',ver:'v'},
+ en:{sub:'Apps for the tablet',search:'Search apps…',all:'Store',inst:'Installed',install:'Install',open:'Open',remove:'Remove',update:'Update',needs:'Tablet ≥',offline:'Online catalog unavailable: bundled apps only.',none:'No apps.',loading:'Loading…',ver:'v'},
+ de:{sub:'Apps für das Tablet',search:'Apps suchen…',all:'Store',inst:'Installiert',install:'Installieren',open:'Öffnen',remove:'Entfernen',update:'Aktualisieren',needs:'Tablet ≥',offline:'Online-Katalog nicht verfügbar: nur mitgelieferte Apps.',none:'Keine Apps.',loading:'Lädt…',ver:'v'},
+ it:{sub:'App per il tablet',search:'Cerca app…',all:'Store',inst:'Installate',install:'Installa',open:'Apri',remove:'Rimuovi',update:'Aggiorna',needs:'Tablet ≥',offline:'Catalogo online non disponibile: solo app incluse.',none:'Nessuna app.',loading:'Caricamento…',ver:'v'},
+ es:{sub:'Apps para la tableta',search:'Buscar apps…',all:'Tienda',inst:'Instaladas',install:'Instalar',open:'Abrir',remove:'Eliminar',update:'Actualizar',needs:'Tableta ≥',offline:'Catálogo en línea no disponible: solo apps incluidas.',none:'Sin apps.',loading:'Cargando…',ver:'v'}
+};
+let lang='fr',tab='all',catalog=[],installed=new Map(),offline=false,loaded=false,tabletVer='0.0.0';
+const vp=v=>String(v||'0').replace(/^v/i,'').split('.').map(x=>parseInt(x,10)||0);const vcmp=(a,b)=>{const x=vp(a),y=vp(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return(x[i]||0)>(y[i]||0)?1:-1}return 0};
+const $=i=>document.getElementById(i),t=k=>(L[lang]||L.en)[k];
+const send=m=>parent.postMessage(Object.assign({tablet:1},m),'*');
+const abs=(e,local)=>/^https?:/.test(e)?e:(local?new URL('../../'+e,location.href).href:new URL(e,STORE_BASE).href);
+const tx=(o,k)=>{const v=o[k];return v&&typeof v==='object'?(v[lang]||v.en||v.fr||Object.values(v)[0]):v};
+async function fetchJson(u,ms){const c=new AbortController(),h=setTimeout(()=>c.abort(),ms||6000);try{const r=await fetch(u,{cache:'no-store',signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(h)}}
+async function loadCatalog(){
+  const map=new Map();
+  try{const j=await fetchJson('catalog.json',3000);for(const a of j.apps||[])map.set(a.id,Object.assign({},a,{_local:true}))}catch{}
+  try{const j=await fetchJson(STORE_BASE+'apps/index.json',7000);for(const a of j.apps||[])map.set(a.id,Object.assign({},a,{_local:false}))}catch{offline=true}
+  catalog=[...map.values()];loaded=true;render();
+}
+function render(){
+  $('sub').textContent=t('sub')+(offline?' · '+t('offline'):'');$('q').placeholder=t('search');$('t-all').textContent=t('all');$('t-inst').textContent=t('inst');
+  const q=$('q').value.trim().toLowerCase(),el=$('list');el.textContent='';
+  if(!loaded){el.innerHTML='<div id="msg"></div>';$('msg').textContent=t('loading');return}
+  const list=catalog.filter(a=>(tab==='all'||installed.has(a.id))&&(!q||(tx(a,'name')+' '+tx(a,'description')+' '+(a.author||'')).toLowerCase().includes(q)));
+  if(!list.length){el.innerHTML='<div id="msg"></div>';$('msg').textContent=t('none');return}
+  for(const a of list){
+    const c=document.createElement('div');c.className='c';const ic=document.createElement('div');ic.className='ic';if(a.color)ic.style.background=a.color;if(a.icon){const im=document.createElement('img');im.src=abs(a.icon,a._local);im.style.cssText=a.iconFit==='cover'?'width:100%;height:100%;object-fit:cover':'width:60%;height:60%;object-fit:contain';ic.style.overflow='hidden';ic.append(im)}else ic.textContent=a.emoji||'🧩';
+    const m=document.createElement('div');m.className='m';const b=document.createElement('b');b.textContent=tx(a,'name');const s=document.createElement('small');s.textContent=tx(a,'description')||'';const i=document.createElement('i');i.textContent=[a.author,a.version?t('ver')+a.version:''].filter(Boolean).join(' · ');m.append(b,s,i);
+    const act=document.createElement('div');act.style.cssText='display:flex;flex-direction:column;gap:6px';
+    const have=installed.has(a.id),ver=installed.get(a.id);
+    const mk=(cls,label,fn)=>{const x=document.createElement('button');x.className='b '+cls;x.textContent=label;x.onclick=fn;act.append(x)};
+    const doInstall=()=>send({type:'store:install',app:{id:a.id,name:tx(a,'name'),emoji:a.emoji,glyph:a.glyph,icon:a.icon?abs(a.icon,a._local):undefined,iconFit:a.iconFit,color:a.color,type:a.type||'local',version:a.version,url:abs(a.entry||a.url,a._local)}});
+    const tooOld=a.minTablet&&vcmp(a.minTablet,tabletVer)>0;
+    if(tooOld){const x=document.createElement('button');x.className='b g';x.disabled=true;x.style.opacity='.6';x.textContent=t('needs')+' '+a.minTablet;act.append(x)}
+    else if(!have)mk('',t('install'),doInstall);
+    else{mk('',t('open'),()=>send({type:'open',id:a.id}));if(a.version&&ver&&String(ver)!==String(a.version))mk('g',t('update'),doInstall);mk('d g',t('remove'),()=>send({type:'store:remove',id:a.id}))}
+    c.append(ic,m,act);el.append(c);
+  }
+}
+$('q').oninput=render;$('t-all').onclick=()=>{tab='all';$('t-all').classList.add('on');$('t-inst').classList.remove('on');render()};
+$('t-inst').onclick=()=>{tab='inst';$('t-inst').classList.add('on');$('t-all').classList.remove('on');render()};
+addEventListener('message',e=>{const m=e.data;if(!m||!m.tablet)return;
+  if(m.type==='prefs'&&m.lang){lang=m.lang;render()}
+  else if(m.type==='store:state'){if(m.tablet)tabletVer=m.tablet;installed=new Map((m.installed||[]).map(a=>[a.id,a.version]));render()}});
+render();send({type:'hello'});send({type:'store:list'});loadCatalog();
+</script></body></html>

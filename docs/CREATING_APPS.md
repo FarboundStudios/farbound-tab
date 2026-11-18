@@ -59,7 +59,7 @@ All messages are `window.postMessage` objects with `tablet: 1`.
 | `home` | — | Go to the home screen. |
 | `open` | `id` | Open another app (e.g. `'radio'`, `'gps'`). |
 | `nowplaying` | `title`, `artist` | Update the "now playing" tile on the home screen. |
-| `log` | `msg` | Write a line in the plugin log (`plugins\heavymp-probe\ui-probe.log`). |
+| `log` | `msg` | Write a line in the plugin log (`plugins\farbound-tab\ui-probe.log`). |
 
 ### Tablet → app
 
@@ -162,6 +162,6 @@ Open **Farbound Store → Test App → Install** to see a working example (telem
 
 **My app is blank in the Store version but works locally.** Use relative paths (`./style.css`, not `/style.css`) and keep every file inside `apps/<id>/`.
 
-**How do I see errors?** Call `send({type:'log', msg:'…'})` and read `Euro Truck Simulator 2\bin\win_x64\plugins\heavymp-probe\ui-probe.log`; or open your page in a normal browser while developing.
+**How do I see errors?** Call `send({type:'log', msg:'…'})` and read `Euro Truck Simulator 2\bin\win_x64\plugins\farbound-tab\ui-probe.log`; or open your page in a normal browser while developing.
 
 **Can an app control the truck?** No. The tablet is read-only toward the game.

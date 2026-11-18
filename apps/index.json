@@ -53,7 +53,7 @@
       "entry": "https://www.youtube.com/"
     },
     {
-      "id": "youtube-music",
+      "id": "ytmusic",
       "name": {
         "fr": "YouTube Music",
         "en": "YouTube Music"
@@ -70,7 +70,7 @@
       "entry": "https://music.youtube.com/"
     },
     {
-      "id": "deezer-web",
+      "id": "deezer",
       "name": {
         "fr": "Deezer",
         "en": "Deezer"
@@ -87,7 +87,7 @@
       "entry": "https://www.deezer.com/"
     },
     {
-      "id": "spotify-web",
+      "id": "spotify",
       "name": {
         "fr": "Spotify",
         "en": "Spotify"

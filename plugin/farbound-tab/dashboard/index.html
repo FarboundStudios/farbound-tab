@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Truck GPS</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"></script>
+<style>
+:root{--accent:#33b5ff;--ui:rgba(18,22,30,.88);--uitext:#fff;--uisub:#9aa7b8}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#111;font-family:system-ui,Segoe UI,Roboto,sans-serif;user-select:none}
+#map{position:fixed;inset:0;width:100%;height:100%}
+#truck{position:fixed;left:50%;top:68%;width:46px;height:56px;margin:-28px 0 0 -23px;z-index:2;pointer-events:none;filter:drop-shadow(0 3px 6px rgba(0,0,0,.45))}
+#wait{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;background:var(--ui);color:#fff;padding:10px 18px;border-radius:12px;font-size:15px;display:none}
+.w{position:absolute;color:var(--uitext);transform-origin:top left}
+.card{background:var(--ui);border-radius:18px;padding:12px 18px;box-shadow:0 4px 18px rgba(0,0,0,.35);backdrop-filter:blur(6px)}
+.light .card{--uitext:#1b2430;--uisub:#5b6676;background:rgba(255,255,255,.93)}
+#w-speed{display:flex;gap:14px;align-items:center}
+#speedv{font-size:64px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+#speedu{font-size:14px;color:var(--uisub)}
+.limit{width:62px;height:62px;border-radius:50%;background:#fff;border:7px solid #e53935;color:#111;display:grid;place-items:center;font-weight:800;font-size:24px}
+#w-range{min-width:230px}
+#w-range .lbl{font-size:13px;color:var(--uisub);text-transform:uppercase;letter-spacing:.08em}
+#rangev{font-size:56px;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums}
+#rangev small{font-size:22px;font-weight:600;color:var(--uisub);margin-left:4px}
+.bar{height:10px;border-radius:6px;background:rgba(128,128,128,.3);overflow:hidden;margin-top:8px}
+#fuelbar{height:100%;width:50%;background:var(--accent);transition:width .5s,background .5s}
+#w-turn{display:flex;gap:16px;align-items:center;background:var(--accent);color:#fff;border-radius:20px;padding:12px 22px;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+#turnarrow{font-size:54px;line-height:1;width:60px;text-align:center}
+#turndist{font-size:34px;font-weight:800;line-height:1}
+#turntxt{font-size:15px;opacity:.9;margin-top:2px}
+#w-eta{display:flex;gap:26px;align-items:center}
+.k{font-size:12px;color:var(--uisub);text-transform:uppercase;letter-spacing:.08em}
+.v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+body.edit .w{outline:2px dashed var(--accent);cursor:move;z-index:12}
+body.edit .w.sel{outline:3px solid #fff}
+body.hideW{}
+.w.off{display:none}
+body.edit .w.off{display:block;opacity:.3}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--accent,#f0a30a);border-radius:6px;border:2px solid transparent;background-clip:padding-box}
+#panel{position:fixed;right:0;top:0;bottom:0;width:min(320px,46vw);background:#12161ee8;color:#fff;padding:18px;overflow:auto;transform:translateX(100%);transition:transform .25s;z-index:10;backdrop-filter:blur(8px)}
+body.edit #panel{transform:none}
+#panel h2{margin:0 0 4px;font-size:18px}#panel h3{margin:18px 0 8px;font-size:12px;color:#9aa7b8;text-transform:uppercase;letter-spacing:.1em}
+#panel p{font-size:12px;color:#9aa7b8;margin:0 0 6px}
+body[data-skin=waze] .card{border-radius:30px;padding:12px 22px;box-shadow:0 6px 0 rgba(0,0,0,.12),0 8px 22px rgba(30,60,120,.25);border:2px solid #fff}
+body[data-skin=waze] #w-turn{border-radius:30px;background:#33a1ff;box-shadow:0 6px 0 #1b6fc0,0 8px 22px rgba(30,60,120,.35)}
+body[data-skin=waze] #speedv,body[data-skin=waze] #rangev{font-weight:900}
+body[data-skin=waze] .limit{border-width:8px}
+body[data-skin=waze] .bar{height:12px}
+body[data-skin=carplay] .card{border-radius:22px;background:rgba(255,255,255,.82);backdrop-filter:blur(18px) saturate(1.6);box-shadow:0 2px 14px rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.7)}
+body[data-skin=carplay] #w-turn{background:rgba(255,255,255,.9);color:#111;border-radius:22px;backdrop-filter:blur(18px)}
+body[data-skin=carplay] #turnarrow{color:#0a84ff}
+body[data-skin=carplay] #turntxt{color:#555}
+body[data-skin=carplay] #speedv{font-weight:600}
+body[data-skin=auto] .card{border-radius:14px;background:#202124ee;color:#e8eaed;box-shadow:0 2px 6px rgba(0,0,0,.5);border:1px solid #3c4043}
+body[data-skin=auto] #w-turn{background:#1a3a6b;border-radius:14px;border:1px solid #8ab4f8;color:#e8eaed}
+body[data-skin=auto] #turnarrow{color:#8ab4f8}
+body[data-skin=auto] #speedv{font-weight:500}
+.styles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.styles button,.row button{background:#222a38;color:#fff;border:2px solid transparent;border-radius:10px;padding:10px;cursor:pointer;font-size:13px}
+.styles button.on{border-color:var(--accent)}
+.row{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:14px}
+.row label{flex:1}
+input[type=range]{flex:2}
+.sw{display:flex;gap:8px}.sw i{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid #fff3}
+#gbtns{position:fixed;right:calc(10px*var(--ks,1));top:calc(8px*var(--ks,1));display:flex;flex-direction:column;gap:calc(8px*var(--ks,1));z-index:11}
+#gbtns button{width:calc(40px*var(--ks,1));height:calc(40px*var(--ks,1));border-radius:50%;border:1px solid #ffffff30;background:rgba(18,22,30,.82);color:#fff;font-size:calc(20px*var(--ks,1));font-weight:700;line-height:1;cursor:pointer;backdrop-filter:blur(6px)}
+.light #gbtns button{background:rgba(255,255,255,.9);color:#1b2430}
+body.edit #gbtns{right:calc(min(320px,46vw) + 10px)}
+#hint{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);font-size:12px;color:#fff;background:#0009;padding:4px 10px;border-radius:8px;z-index:5}
+body.edit #hint{display:none}
+@media (max-height:700px){#hint{display:none}}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="truck"><svg viewBox="0 0 46 56" width="46" height="56"><path d="M23 2 L43 52 L23 40 L3 52 Z" fill="var(--accent)" stroke="#fff" stroke-width="4" stroke-linejoin="round"/></svg></div>
+<img id="gamemap" alt="" style="position:fixed;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 58%;z-index:0;display:none;pointer-events:none"><div id="wait">En attente du jeu…</div>
+
+<div class="w card" id="w-speed" data-name="Vitesse"><div><div id="speedv">0</div><div id="speedu">km/h</div></div><div class="limit" id="limit">50</div></div>
+<div class="w card" id="w-range" data-name="Autonomie carburant"><div class="lbl" id="l-range">Autonomie restante</div><div id="rangev">0<small>km</small></div><div class="bar"><div id="fuelbar"></div></div></div>
+<div class="w" id="w-turn" data-name="Prochain virage"><div id="turnarrow">↑</div><div><div id="turndist">—</div><div id="turntxt">Continuez tout droit</div></div></div>
+<div class="w card" id="w-eta" data-name="Trajet (ETA)"><div><div class="k" id="l-arr">Arrivée</div><div class="v" id="eta">--:--</div></div><div><div class="k" id="l-rest">Reste</div><div class="v" id="remt">--</div></div><div><div class="k" id="l-dist">Distance</div><div class="v" id="remd">--</div></div></div>
+
+<div id="panel">
+  <h2 data-g="custom">Personnaliser</h2><p data-g="custom_help">Touchez un élément pour le sélectionner, faites-le glisser pour le déplacer.</p>
+  <h3 data-g="style">Style d'écran</h3><div class="styles" id="styleBtns"></div>
+  <h3 data-g="elem">Élément sélectionné</h3>
+  <div id="selName" class="row"><label data-g="none">Aucun</label></div>
+  <div class="row"><label data-g="size">Taille</label><input type="range" id="scale" min="50" max="220" value="100"></div>
+  <div class="row"><label data-g="visible">Visible</label><input type="checkbox" id="vis" checked></div>
+  <h3 data-g="accent">Couleur d'accent</h3><div class="sw" id="accents"></div>
+  <h3 data-g="map">Carte</h3>
+  <div class="row"><label data-g="autozoom">Zoom auto (vitesse)</label><input type="checkbox" id="autozoom" checked></div>
+  <div class="row"><label data-g="tilt">Inclinaison 3D</label><input type="range" id="tilt" min="0" max="60" value="35"></div>
+  <h3 data-g="layout">Disposition</h3>
+  <div class="row"><button id="reset" data-g="reset">Réinitialiser</button></div>
+</div>
+<div id="hint">PageDown : personnaliser · + / − : zoom · S : changer de style</div>
+<div id="gbtns"><button id="gb-set" title="Customize">⚙</button><button id="gb-plus" title="Zoom +">+</button><button id="gb-minus" title="Zoom −">−</button></div>
+
+<script>
+'use strict';
+/* ===================== Styles d'écran ===================== */
+const STYLES={
+  ets2:   {name:'ETS2 (jeu)',    light:false,land:'#2b3138',park:'#2f3d36',water:'#1f3a52',minor:'#4a525c',major:'#f0a30a',casing:'#171b20',route:'#1e9bff',truck:'#f0a30a',label:'#8e98a4',land2:'#30373f',mid:'#6b7480',fuel:'#f0a30a',text:'#d5dae0',halo:'#1d2127'},
+  ets2day:{name:'ETS2 jour',     light:true, land:'#dcdfe2',park:'#c3d4b3',water:'#a9c8e2',minor:'#ffffff',major:'#f0a30a',casing:'#b9bec4',route:'#1e7fe0',truck:'#f0a30a',label:'#59636e',land2:'#d0d4d8',mid:'#f7e2b0',fuel:'#e08a00',text:'#3b444d',halo:'#ffffff'},
+  waze:  {name:'Waze',          light:true, land:'#e9e6df',park:'#c9e6b5',water:'#a8d4f0',minor:'#ffffff',major:'#ffd966',casing:'#c9c4b8',route:'#2f9bff',truck:'#2f9bff',label:'#6b7280',land2:'#dedad0',mid:'#fff3c4',fuel:'#ff5d73',text:'#4b5563',halo:'#ffffff'},
+  carplay:{name:'CarPlay',       light:true, land:'#f1efe9',park:'#cfe7c1',water:'#aadaff',minor:'#ffffff',major:'#fbe29a',casing:'#d6d2c8',route:'#0a84ff',truck:'#0a84ff',label:'#777',land2:'#e6e3da',mid:'#fff1c7',fuel:'#ff453a',text:'#4a4a4a',halo:'#ffffff'},
+  auto:   {name:'Android Auto',  light:false,land:'#1f2733',park:'#1d3a30',water:'#14304a',minor:'#37445a',major:'#5a6b88',casing:'#141a24',route:'#6aa9ff',truck:'#8ab4f8',label:'#8f9bb0',land2:'#232c3a',mid:'#4a5a76',fuel:'#f28b82',text:'#c3cbd9',halo:'#1f2733'},
+  night:  {name:'Nuit',          light:false,land:'#0b0e14',park:'#0f1c17',water:'#0a1522',minor:'#1d2433',major:'#2e3a52',casing:'#06080c',route:'#ff9f1c',truck:'#ff9f1c',label:'#566',land2:'#10141c',mid:'#26314a',fuel:'#ff9f1c',text:'#8d96a8',halo:'#0b0e14'},
+};
+const SKIN={   // habillage d'interface complet (en plus des couleurs de carte) : accent + disposition
+  waze:   {accent:'#33a1ff',w:{turn:{x:1,y:2,s:105},speed:{x:1,y:74,s:100},range:{x:76,y:2,s:90},eta:{x:34,y:84,s:90}}},
+  carplay:{accent:'#0a84ff',w:{turn:{x:1,y:2,s:100},speed:{x:1,y:76,s:100},range:{x:76,y:2,s:90},eta:{x:60,y:84,s:90}}},
+  auto:   {accent:'#8ab4f8',w:{turn:{x:1,y:2,s:100},speed:{x:1,y:76,s:100},range:{x:76,y:2,s:90},eta:{x:36,y:86,s:90}}}};
+const ACCENTS=['#f0a30a','#33b5ff','#ff9f1c','#2ecc71','#ff5d73','#b388ff'];
+
+/* ===================== Réglages (sauvegardés) ===================== */
+const DEF={style:'ets2',accent:'#f0a30a',autozoom:true,tilt:35,zoom:1.0,
+  widgets:innerHeight<=560?{speed:{x:1,y:2,s:100,on:true},range:{x:74,y:2,s:100,on:true},turn:{x:27,y:2,s:100,on:true},eta:{x:27,y:76,s:100,on:true}}:{speed:{x:2,y:3,s:100,on:true},range:{x:2,y:78,s:100,on:true},turn:{x:30,y:3,s:100,on:true},eta:{x:60,y:86,s:100,on:true}}};
+const ks=()=>innerHeight<=700?Math.max(.7,Math.min(1.5,innerHeight/512)):1; // petits ecrans (tablette de cabine) : tout s'adapte a la hauteur
+let cfg=load();
+function load(){try{const j=JSON.parse(localStorage.getItem('truckgps3')||'null');if(j)return Object.assign(structuredClone(DEF),j,{widgets:Object.assign(structuredClone(DEF.widgets),j.widgets||{})})}catch(e){}return structuredClone(DEF)}
+function save(){try{localStorage.setItem('truckgps3',JSON.stringify(cfg))}catch(e){}}
+
+/* ===================== Télémétrie ===================== */
+/* Format commun: {x,y (m, y=nord), heading (deg, 0=nord), speed (km/h), limit, fuel (L), fuelCap, fuelRange (km),
+   navDist (m), navTime (s), turn:{dir:-1|0|1, dist:m}} */
+const Telemetry={t:{x:0,y:0,heading:0,speed:0,limit:50,fuel:400,fuelCap:600,fuelRange:0,navDist:0,navTime:0,turn:{dir:0,dist:0}},
+  ws:null,mock:null};
+const C=500; // taille de maille de la grille fictive (m)
+const ROUTE=[[0,0],[8,0],[8,5],[3,5],[3,9],[-4,9],[-4,3],[0,3],[0,0]].map(p=>({x:p[0]*C,y:p[1]*C}));
+const SEG=[];let total=0;
+for(let i=0;i<ROUTE.length-1;i++){const a=ROUTE[i],b=ROUTE[i+1],l=Math.hypot(b.x-a.x,b.y-a.y);SEG.push({a,b,l,start:total,hd:(Math.atan2(b.x-a.x,b.y-a.y)*180/Math.PI+360)%360});total+=l}
+const mock={d:0,v:0,fuel:420,cons:.33,last:performance.now()};
+function stepMock(now){
+  const dt=Math.min(.1,(now-mock.last)/1000);mock.last=now;
+  let i=SEG.findIndex(s=>mock.d<s.start+s.l);if(i<0){mock.d=0;i=0}
+  const s=SEG[i],toEnd=s.start+s.l-mock.d,nxt=SEG[(i+1)%SEG.length];
+  const turning=Math.abs(((nxt.hd-s.hd+540)%360)-180)>20&&i<SEG.length-1;
+  const limit=(i%2)?50:90;
+  let target=limit/3.6*.95; if(turning)target=Math.min(target,Math.max(3,toEnd/6));
+  mock.v+=(target-mock.v)*Math.min(1,dt*.8);
+  const dd=mock.v*dt;mock.d+=dd;mock.fuel=Math.max(0,mock.fuel-dd/1000*mock.cons);if(mock.fuel<=0)mock.fuel=600;
+  const p={x:s.a.x+(s.b.x-s.a.x)*((mock.d-s.start)/s.l),y:s.a.y+(s.b.y-s.a.y)*((mock.d-s.start)/s.l)};
+  const cross=Math.sin((nxt.hd-s.hd)*Math.PI/180);
+  const t=Telemetry.t;t.x=-31100+p.x;t.y=5500+p.y;
+  let dh=((s.hd-t.heading+540)%360)-180;t.heading=(t.heading+dh*Math.min(1,dt*3)+360)%360;
+  t.speed=mock.v*3.6;t.limit=limit;t.fuel=mock.fuel;t.fuelRange=mock.fuel/mock.cons;
+  t.navDist=Math.max(0,total-mock.d);t.navTime=t.navDist/Math.max(12,mock.v||12);
+  t.turn={dir:i<SEG.length-1&&Math.abs(cross)>.3?Math.sign(cross):0,dist:toEnd};
+}
+function connectWS(url){
+  const ws=new WebSocket(url);Telemetry.ws=ws;
+  ws.onmessage=e=>{try{const j=JSON.parse(e.data);if(j.cmd!==undefined){handleCmd(j);return}if(j.route!==undefined){setRoute(j.route);return}Telemetry.t.turn={dir:0,dist:j.navDist||0};Object.assign(Telemetry.t,j);Telemetry.live=true;Telemetry.last=performance.now()}catch(_){}};
+  ws.onclose=()=>{Telemetry.ws=null;setTimeout(()=>connectWS(url),2000)};
+}
+const qs=new URLSearchParams(location.search);const demo=qs.has('demo');
+if(qs.get('ws'))connectWS(qs.get('ws'));
+else if(location.protocol.startsWith('http')&&location.hostname!=='tablet.local')connectWS('ws://'+location.host+'/ws');
+
+/* ===================== Carte reelle (MapLibre + donnees du jeu) ===================== */
+/* Projection ETS2 (identique a truckermudgeon/maps: libs/map/projections.ts) : coords jeu (x,z) -> lon/lat */
+const Proj=(()=>{
+  const R=6370997,d=Math.PI/180,p1=37*d,p2=65*d,p0=50*d,l0=15*d,L=R*d;
+  const n=Math.log(Math.cos(p1)/Math.cos(p2))/Math.log(Math.tan(Math.PI/4+p2/2)/Math.tan(Math.PI/4+p1/2));
+  const F=Math.cos(p1)*Math.pow(Math.tan(Math.PI/4+p1/2),n)/n;
+  const rho0=R*F/Math.pow(Math.tan(Math.PI/4+p0/2),n);
+  return function(x,y){
+    const sx=Math.floor(x/4000),sy=Math.floor(y/4000);
+    x-=16660;y-=4150;
+    if(sx<=-8&&sy<=-2&&!(sx===-8&&sy===-2)){x=(x-31100/2)*.75;y=(y-5500/2)*.75}
+    const X=x*0.0001729241463*L,Y=y*-0.000171570875*L;
+    const rho=Math.sign(n)*Math.hypot(X,rho0-Y),th=Math.atan2(X,rho0-Y);
+    const lat=2*Math.atan(Math.pow(R*F/rho,1/n))-Math.PI/2,lon=l0+th/n;
+    return [lon/d,lat/d];
+  };
+})();
+let W=innerWidth,H=innerHeight;addEventListener('resize',()=>{W=innerWidth;H=innerHeight;applyLayout()});
+let map=null,mapReady=false;
+const FONT=['Open Sans Semibold'];
+const W3=(a,b,c)=>['interpolate',['exponential',1.6],['zoom'],8,a,12,b,17,c];
+const isT=(t)=>['==',['get','t'],t];
+const isK=(k)=>['all',isT('r'),['==',['get','k'],k]];
+const RL={'line-cap':'round','line-join':'round'};
+const LAYERS=[
+ ['area-green','fill',['all',isT('a'),['==',['get','c'],3]],{}, S=>({'fill-color':S.park})],
+ ['area-light','fill',['all',isT('a'),['==',['get','c'],1]],{}, S=>({'fill-color':S.land2})],
+ ['area-road','fill',['all',isT('a'),['==',['get','c'],0]],{}, S=>({'fill-color':S.minor})],
+ ['ferry','line',isT('f'),{}, S=>({'line-color':S.water,'line-width':2,'line-dasharray':[2,2]})],
+ ['road-local-c','line',isK('local'),RL, S=>({'line-color':S.casing,'line-width':W3(.6,3.4,24)}),9],
+ ['road-div-c','line',isK('divided'),RL, S=>({'line-color':S.casing,'line-width':W3(1.2,5,34)}),7],
+ ['road-free-c','line',isK('freeway'),RL, S=>({'line-color':S.casing,'line-width':W3(1.8,6.5,40)})],
+ ['prefab','fill',isT('p'),{}, S=>({'fill-color':S.minor,'fill-outline-color':S.minor})],
+ ['road-local','line',isK('local'),RL, S=>({'line-color':S.minor,'line-width':W3(.35,2.4,20)}),9],
+ ['road-div','line',isK('divided'),RL, S=>({'line-color':S.mid,'line-width':W3(.8,3.6,28)}),7],
+ ['road-free','line',isK('freeway'),RL, S=>({'line-color':S.major,'line-width':W3(1.2,4.8,34)})],
+ ['gas','circle',isT('g'),{}, S=>({'circle-color':S.fuel,'circle-radius':['interpolate',['linear'],['zoom'],11,3,16,8],'circle-stroke-color':'#fff','circle-stroke-width':2}),11],
+ ['city','symbol',isT('c'),{'text-field':['get','n'],'text-font':FONT,'text-size':['interpolate',['linear'],['zoom'],6,11,14,20],'text-max-width':8}, S=>({'text-color':S.text,'text-halo-color':S.halo,'text-halo-width':2})],
+];
+function paintLayers(){
+  if(!mapReady)return;const S=STYLES[cfg.style];
+  map.setPaintProperty('bg','background-color',S.land);
+  map.setPaintProperty('route','line-color',S.route);
+  for(const L of LAYERS){const pp=L[4](S);for(const k in pp)map.setPaintProperty(L[0],k,pp[k])}
+}
+function initMap(){
+  if(!window.maplibregl)return;
+  map=new maplibregl.Map({container:'map',interactive:false,attributionControl:false,fadeDuration:0,
+    style:{version:8,glyphs:'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+      sources:{g:{type:'geojson',data:'data/ets2.geojson',maxzoom:13,tolerance:.6,buffer:32}},
+      layers:[{id:'bg',type:'background',paint:{'background-color':STYLES[cfg.style].land}}]},
+    center:Proj(-31100,-5500),zoom:12,pitch:cfg.tilt});
+  map.on('load',()=>{
+    for(const [id,type,filter,layout,pf,minzoom] of LAYERS){
+      const l={id,type,source:'g',filter,layout,paint:{}};if(minzoom)l.minzoom=minzoom;map.addLayer(l)}
+    map.addSource('d',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+    map.addSource('r',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+    map.addLayer({id:'route-casing',type:'line',source:'r',layout:RL,paint:{'line-color':'#0b3d91','line-width':W3(3,9,34),'line-opacity':.55}});
+    map.addLayer({id:'route',type:'line',source:'r',layout:RL,paint:{'line-color':STYLES[cfg.style].route,'line-width':W3(2,6.5,26)}});
+    applyRoute();
+    map.addLayer({id:'dest-line',type:'line',source:'d',filter:['==',['geometry-type'],'LineString'],layout:RL,paint:{'line-color':STYLES[cfg.style].route,'line-width':5,'line-dasharray':[1.5,1.5],'line-opacity':.9}});
+    map.addLayer({id:'dest-pt',type:'circle',source:'d',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':11,'circle-color':'#e53935','circle-stroke-color':'#fff','circle-stroke-width':4}});
+    map.addLayer({id:'dest-label',type:'symbol',source:'d',filter:['==',['geometry-type'],'Point'],layout:{'text-field':['get','n'],'text-font':FONT,'text-size':16,'text-offset':[0,1.6],'text-anchor':'top','text-allow-overlap':true},paint:{'text-color':'#e53935','text-halo-color':'#fff','text-halo-width':2.5}});
+    mapReady=true;paintLayers();
+  });
+  map.on('error',e=>console.warn('map',e&&e.error&&e.error.message));
+}
+initMap();
+/* Destination (point GPS): ville du job actif. Le plugin n'expose pas le point pose a la main ni le trace de la route. */
+let RLL=[];
+function setRoute(r){RLL=r||[];applyRoute()}
+function applyRoute(){
+  if(!mapReady&&!map)return;
+  const src=map.getSource&&map.getSource('r');if(!src)return;
+  src.setData(RLL.length>1?{type:'Feature',properties:{},geometry:{type:'LineString',coordinates:RLL}}:{type:'FeatureCollection',features:[]});
+}
+let CITIES=null;
+fetch('data/cities.json').then(r=>r.json()).then(a=>{CITIES=new Map(a.map(c=>[norm(c.n),c.c]))}).catch(()=>{});
+const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');
+let destKey='',destLL=null,destAt=0;
+function updateDest(px,py){
+  const t=Telemetry.t,k=Telemetry.live?(t.destId||t.dest||''):'';
+  if(k!==destKey){destKey=k;destLL=null;
+    if(k&&CITIES)destLL=CITIES.get(norm(t.dest))||CITIES.get(norm(t.destId))||null;
+    if(!destLL)map.getSource('d').setData({type:'FeatureCollection',features:[]});
+    destAt=0}
+  let label=t.dest||'';
+  if(!destLL&&RLL.length>1){destLL=RLL[RLL.length-1];label='Destination GPS'}
+  if(!destLL){return}
+  const now=performance.now();if(now-destAt<250)return;destAt=now;
+  const me=Proj(px,-py);
+  const fs=[{type:'Feature',properties:{n:label},geometry:{type:'Point',coordinates:destLL}}];
+  if(RLL.length<2)fs.unshift({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:[me,destLL]}}); // en attendant le calcul
+  map.getSource('d').setData({type:'FeatureCollection',features:fs});
+}
+let zoomNow=15;
+function drawMap(){
+  if(!mapReady)return;
+  const t=Telemetry.t;
+  // Extrapolation entre deux paquets (position = derniere position + vitesse x temps): fluide a 60 i/s, sans retard
+  const dt=Telemetry.live?Math.min(.12,(performance.now()-Telemetry.last)/1000):0,v=t.speed/3.6,h=t.heading*Math.PI/180;
+  const px=t.x+Math.sin(h)*v*dt,py=t.y+Math.cos(h)*v*dt;
+  const base=cfg.autozoom?16-Math.min(1,t.speed/110)*3.4:15;
+  zoomNow+=(base+Math.log2(cfg.zoom)-zoomNow)*.15;
+  updateDest(px,py);
+  map.jumpTo({center:Proj(px,-py),bearing:t.heading,pitch:cfg.tilt,zoom:zoomNow,padding:{top:innerHeight*.36,bottom:0,left:0,right:0}});
+}
+
+/* ===================== Widgets / HUD ===================== */
+const $=id=>document.getElementById(id);
+const WID={speed:$('w-speed'),range:$('w-range'),turn:$('w-turn'),eta:$('w-eta')};
+function applyLayout(){
+  document.documentElement.style.setProperty('--ks',ks());
+  if(typeof paintLayers==='function')paintLayers();
+  document.documentElement.style.setProperty('--accent',cfg.accent);
+  document.body.classList.toggle('light',STYLES[cfg.style].light);document.body.dataset.skin=cfg.style;applyMapZoom();
+  for(const k in WID){const c=cfg.widgets[k],e=WID[k];e.style.left=c.x+'%';e.style.top=c.y+'%';e.style.transform=`scale(${c.s/100*ks()})`;e.classList.toggle('off',!c.on)}
+  document.querySelectorAll('#styleBtns button').forEach(b=>b.classList.toggle('on',b.dataset.k===cfg.style));
+}
+const ARROW={'-1':'↰','0':'↑','1':'↱'};
+const fmtD=m=>m>=1000?(m/1000).toFixed(m>=10000?0:1)+' km':Math.round(m/10)*10+' m';
+const fmtT=s=>{const m=Math.round(s/60);return m>=60?Math.floor(m/60)+' h '+String(m%60).padStart(2,'0'):m+' min'};
+function updateHUD(){
+  const t=Telemetry.t;
+  $('speedv').textContent=Math.round(t.speed);$('limit').textContent=Math.round(t.limit);
+  $('speedv').style.color=t.speed>t.limit+3?'#ff5252':'';
+  $('rangev').firstChild.nodeValue=Math.round(t.fuelRange);
+  const pct=Math.max(0,Math.min(100,t.fuel/t.fuelCap*100));const fb=$('fuelbar');fb.style.width=pct+'%';
+  fb.style.background=t.fuelRange<100?'#ff5252':t.fuelRange<250?'#ffb300':'var(--accent)';
+  $('turnarrow').textContent=ARROW[t.turn.dir];$('turndist').textContent=fmtD(t.turn.dist);
+  $('turntxt').textContent=t.turn.dir<0?GT[GL].left:t.turn.dir>0?GT[GL].right:GT[GL].straight;
+  $('remd').textContent=fmtD(t.navDist);$('remt').textContent=fmtT(t.navTime);
+  const e=new Date(Date.now()+t.navTime*1000);$('eta').textContent=e.getHours()+':'+String(e.getMinutes()).padStart(2,'0');
+}
+
+/* ===================== Édition (PageDown) ===================== */
+let sel=null;
+const sb=$('styleBtns');
+for(const k in STYLES){const b=document.createElement('button');b.textContent=STYLES[k].name;b.dataset.k=k;b.onclick=()=>{cfg.style=k;const sk=SKIN[k];if(sk){cfg.accent=sk.accent;for(const w in sk.w)Object.assign(cfg.widgets[w],sk.w[w],{on:true})}applyLayout();save()};sb.appendChild(b)}
+const ac=$('accents');ACCENTS.forEach(c=>{const i=document.createElement('i');i.style.background=c;i.onclick=()=>{cfg.accent=c;applyLayout();save()};ac.appendChild(i)});
+function select(k){sel=k;for(const w in WID)WID[w].classList.toggle('sel',w===k);
+  $('selName').firstChild.textContent=k?GT[GL].w[k]:GT[GL].none;if(k){$('scale').value=cfg.widgets[k].s;$('vis').checked=cfg.widgets[k].on}}
+$('scale').oninput=e=>{if(sel){cfg.widgets[sel].s=+e.target.value;applyLayout();save()}};
+$('vis').onchange=e=>{if(sel){cfg.widgets[sel].on=e.target.checked;applyLayout();save()}};
+$('autozoom').checked=cfg.autozoom;$('autozoom').onchange=e=>{cfg.autozoom=e.target.checked;save()};
+$('tilt').value=cfg.tilt;$('tilt').oninput=e=>{cfg.tilt=+e.target.value;save()};
+$('reset').onclick=()=>{cfg=structuredClone(DEF);applyLayout();select(null);save()};
+for(const k in WID){
+  WID[k].addEventListener('pointerdown',ev=>{
+    if(!document.body.classList.contains('edit'))return;
+    select(k);const c=cfg.widgets[k],sx=ev.clientX,sy=ev.clientY,ox=c.x,oy=c.y;let on=false;   // clic = selection ; glisser (clic gauche ou droit) = deplacer
+    const mv=m=>{if(!on&&Math.hypot(m.clientX-sx,m.clientY-sy)<5)return;on=true;c.x=Math.max(-5,Math.min(95,ox+(m.clientX-sx)/W*100));c.y=Math.max(-5,Math.min(95,oy+(m.clientY-sy)/H*100));applyLayout()};
+    const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);if(on)save()};
+    addEventListener('pointermove',mv);addEventListener('pointerup',up);ev.preventDefault();
+  });
+}
+addEventListener('contextmenu',e=>{if(document.body.classList.contains('edit'))e.preventDefault()});
+function applyMapZoom(){const im=$('gamemap');if(im){im.style.transformOrigin='50% 58%';im.style.transform='scale('+cfg.zoom+')'}}
+const zoomBy=f=>{cfg.zoom=Math.max(.5,Math.min(3,cfg.zoom*f));applyMapZoom();save()};
+const toggleEdit=()=>{document.body.classList.toggle('edit');if(!document.body.classList.contains('edit'))select(null)};
+$('gb-set').onclick=toggleEdit;$('gb-plus').onclick=()=>zoomBy(1.2);$('gb-minus').onclick=()=>zoomBy(1/1.2);
+addEventListener('keydown',e=>{
+  if(e.key==='PageDown'){toggleEdit();e.preventDefault()}
+  else if(e.key==='Escape')document.body.classList.remove('edit');
+  else if(e.key==='+'||e.key==='='){zoomBy(1.15)}
+  else if(e.key==='-'){zoomBy(1/1.15)}
+  else if(e.key==='s'||e.key==='S'){const ks=Object.keys(STYLES);cfg.style=ks[(ks.indexOf(cfg.style)+1)%ks.length];applyLayout();save()}
+});
+
+/* Touches venant du jeu (plugin heavymp-gps.dll): PageDown edition, PageUp style, Tab element,
+   fleches deplacer, +/- taille, Entree afficher/masquer, Home accent, End zoom auto, Echap fermer */
+function handleCmd(j){
+  const body=document.body;
+  body.classList.toggle('edit',!!j.edit);
+  if(!j.edit){select(null);return}
+  const ks=Object.keys(WID),c=sel&&cfg.widgets[sel];
+  switch(j.cmd){
+    case 33:{const k=Object.keys(STYLES);cfg.style=k[(k.indexOf(cfg.style)+1)%k.length];break}
+    case 9:select(ks[(ks.indexOf(sel)+1)%ks.length]);break;
+    case 37:if(c)c.x-=1;break;case 39:if(c)c.x+=1;break;case 38:if(c)c.y-=1;break;case 40:if(c)c.y+=1;break;
+    case 107:if(c)c.s=Math.min(220,c.s+10);break;case 109:if(c)c.s=Math.max(50,c.s-10);break;
+    case 13:if(c)c.on=!c.on;break;
+    case 36:cfg.accent=ACCENTS[(ACCENTS.indexOf(cfg.accent)+1)%ACCENTS.length];break;
+    case 35:cfg.autozoom=!cfg.autozoom;$('autozoom').checked=cfg.autozoom;break;
+  }
+  if(sel)select(sel);
+  applyLayout();save();
+}
+
+/* Telemetrie envoyee par le shell (DLL du jeu): {tablet:1,type:'telemetry',data:{x,y,heading,speed,...}} */
+addEventListener('message',e=>{const m=e.data;if(!m||!m.tablet||m.type!=='telemetry'||!m.data||!m.data.live)return;
+  const d=m.data;Object.assign(Telemetry.t,d);Telemetry.t.turn={dir:0,dist:d.navDist||0};Telemetry.live=true;Telemetry.last=performance.now()});
+parent.postMessage({tablet:1,type:'hello'},'*');
+addEventListener('error',e=>parent.postMessage({tablet:1,type:'log',msg:'GPS erreur: '+e.message+' @'+e.lineno},'*'));
+setInterval(()=>parent.postMessage({tablet:1,type:'log',msg:'GPS etat live='+Telemetry.live+' x='+Math.round(Telemetry.t.x)+' v='+Math.round(Telemetry.t.speed)+' carteJeu='+(gmAt?'oui':'non')},'*'),5000);
+/* Langue (envoyee par le shell : {type:'prefs',lang}) */
+const GT={
+ fr:{range:'Autonomie restante',arr:'Arrivée',rest:'Reste',dist:'Distance',left:'Tournez à gauche',right:'Tournez à droite',straight:'Continuez tout droit',custom:'Personnaliser',custom_help:'Touchez un élément pour le sélectionner, faites-le glisser pour le déplacer.',style:"Style d'écran",elem:'Élément sélectionné',none:'Aucun',size:'Taille',visible:'Visible',accent:"Couleur d'accent",map:'Carte',autozoom:'Zoom auto (vitesse)',tilt:'Inclinaison 3D',layout:'Disposition',reset:'Réinitialiser',w:{speed:'Vitesse',range:'Autonomie carburant',turn:'Prochain virage',eta:'Trajet (ETA)'}},
+ en:{range:'Range left',arr:'Arrival',rest:'Time left',dist:'Distance',left:'Turn left',right:'Turn right',straight:'Continue straight',custom:'Customize',custom_help:'Tap an item to select it, drag it to move it.',style:'Screen style',elem:'Selected item',none:'None',size:'Size',visible:'Visible',accent:'Accent color',map:'Map',autozoom:'Auto zoom (speed)',tilt:'3D tilt',layout:'Layout',reset:'Reset',w:{speed:'Speed',range:'Fuel range',turn:'Next turn',eta:'Trip (ETA)'}},
+ de:{range:'Restreichweite',arr:'Ankunft',rest:'Restzeit',dist:'Entfernung',left:'Links abbiegen',right:'Rechts abbiegen',straight:'Geradeaus weiter',custom:'Anpassen',custom_help:'Element antippen, zum Verschieben ziehen.',style:'Bildschirmstil',elem:'Gewähltes Element',none:'Keins',size:'Größe',visible:'Sichtbar',accent:'Akzentfarbe',map:'Karte',autozoom:'Auto-Zoom (Tempo)',tilt:'3D-Neigung',layout:'Anordnung',reset:'Zurücksetzen',w:{speed:'Tempo',range:'Reichweite',turn:'Nächste Kurve',eta:'Fahrt (ETA)'}},
+ it:{range:'Autonomia residua',arr:'Arrivo',rest:'Tempo residuo',dist:'Distanza',left:'Svolta a sinistra',right:'Svolta a destra',straight:'Prosegui dritto',custom:'Personalizza',custom_help:'Tocca un elemento per selezionarlo, trascinalo per spostarlo.',style:'Stile schermo',elem:'Elemento selezionato',none:'Nessuno',size:'Dimensione',visible:'Visibile',accent:'Colore di accento',map:'Mappa',autozoom:'Zoom automatico (velocità)',tilt:'Inclinazione 3D',layout:'Disposizione',reset:'Ripristina',w:{speed:'Velocità',range:'Autonomia',turn:'Prossima svolta',eta:'Viaggio (ETA)'}},
+ es:{range:'Autonomía restante',arr:'Llegada',rest:'Tiempo restante',dist:'Distancia',left:'Gira a la izquierda',right:'Gira a la derecha',straight:'Continúa recto',custom:'Personalizar',custom_help:'Toca un elemento para seleccionarlo, arrástralo para moverlo.',style:'Estilo de pantalla',elem:'Elemento seleccionado',none:'Ninguno',size:'Tamaño',visible:'Visible',accent:'Color de acento',map:'Mapa',autozoom:'Zoom automático (velocidad)',tilt:'Inclinación 3D',layout:'Disposición',reset:'Restablecer',w:{speed:'Velocidad',range:'Autonomía',turn:'Próxima curva',eta:'Viaje (ETA)'}}};
+let GL='fr';
+function gpsLang(l){if(!GT[l])l='en';GL=l;$('l-range').textContent=GT[l].range;$('l-arr').textContent=GT[l].arr;$('l-rest').textContent=GT[l].rest;$('l-dist').textContent=GT[l].dist;document.querySelectorAll('[data-g]').forEach(e=>{const v=GT[l][e.dataset.g];if(v)e.textContent=v});if(sel)select(sel)}
+addEventListener('message',e=>{const m=e.data;if(m&&m.tablet&&m.type==='prefs'&&m.lang)gpsLang(m.lang)});
+/* Carte du GPS du jeu (envoyee par l'hote de la tablette via le shell): remplace la carte web quand elle arrive */
+let gmAt=0;
+addEventListener('message',e=>{const m=e.data;if(!m||!m.tablet||m.type!=='gamemap')return;
+  const im=$('gamemap');im.src='data:image/jpeg;base64,'+m.data;gmAt=performance.now();
+  if(im.style.display!=='block'){im.style.display='block';$('map').style.visibility='hidden';$('truck').style.display='none'}});
+setInterval(()=>{if(gmAt&&performance.now()-gmAt>3000){gmAt=0;$('gamemap').style.display='none';$('map').style.visibility='';$('truck').style.display=''}},1000);
+
+/* ===================== Boucle ===================== */
+applyLayout();
+function frame(now){if(!Telemetry.live||now-Telemetry.last>2000){Telemetry.live=false;if(demo)stepMock(now)}
+  $('wait').style.display=(Telemetry.live||demo)?'none':'block';drawMap();updateHUD();requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

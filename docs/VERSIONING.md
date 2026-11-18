@@ -12,7 +12,7 @@ Two independent things are versioned, both with [semver](https://semver.org/) (`
 2. Move the `[Unreleased]` notes of `CHANGELOG.md` under a new `## [X.Y.Z]` heading.
 3. Commit, then tag and push: `git tag vX.Y.Z && git push --tags`.
 4. The **Release** workflow validates the catalog and creates a **draft** release with the changelog section as notes.
-5. Open the draft on GitHub, attach the built files (`heavymp-ui-probe.dll`, `.ini`, `dashboard\` folder as a zip, licenses), then **Publish**.
+5. Open the draft on GitHub, attach the built files (a zip of the `plugin/` folder (`farbound-tab.dll`, `farbound-tab.ini`, `farbound-tab\dashboard\`, licenses)), then **Publish**.
 
 Rules: PATCH = fixes, MINOR = new features/apps compatible with older tablets, MAJOR = breaking change in the app protocol.
 

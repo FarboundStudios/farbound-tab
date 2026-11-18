@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Farbound Tab S1</title>
+<script src="../drive/variants.js"></script>
+<style>
+:root{--accent:#f0a30a;--glass:rgba(24,30,40,.55);--glass2:rgba(255,255,255,.08);--line:rgba(255,255,255,.12);--text:#fff;--sub:rgba(255,255,255,.62);--bar:40px;--gest:26px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#000;color:var(--text);font-family:"Segoe UI Variable","Segoe UI",system-ui,Roboto,sans-serif;user-select:none}
+/* fond d'ecran: route de nuit */
+#wall{position:fixed;inset:0;background:
+ radial-gradient(900px 500px at 85% 110%,rgba(240,163,10,.35),transparent 60%),
+ radial-gradient(700px 500px at 10% -10%,rgba(51,120,255,.30),transparent 60%),
+ linear-gradient(160deg,#0b1220,#101a2c 55%,#1a1424)}
+#wall{background-size:cover;background-position:center}#wall.plain:after{display:none}
+#wall:after{content:"";position:absolute;left:-10%;right:-10%;bottom:-6%;height:46%;background:
+ linear-gradient(#0000,#0008),repeating-linear-gradient(90deg,#fff1 0 2px,#0000 2px 90px);transform:perspective(500px) rotateX(62deg);transform-origin:bottom;opacity:.5}
+#status{position:fixed;left:0;right:0;top:0;height:var(--bar);display:flex;align-items:center;gap:14px;padding:0 22px;z-index:30;font-size:14px;font-weight:600;background:linear-gradient(#0009,#0000)}
+#status .sp{flex:1}
+#status svg{width:18px;height:18px;fill:currentColor;opacity:.9}
+#st-gps{color:#ff6b5e}#st-gps.on{color:#4ade80}
+#stage{position:fixed;left:0;right:0;top:0;bottom:0}
+.page{position:absolute;inset:0;display:none}
+.page:not(.show){display:none!important}
+.page.show{display:block;animation:in .22s ease-out}
+@keyframes in{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+.page iframe{position:absolute;left:0;right:0;top:var(--bar);bottom:var(--gest);width:100%;height:calc(100% - var(--bar) - var(--gest));border:0;background:#000;border-radius:0}
+.page.show.app{background:#000}
+/* accueil */
+#home{display:none;padding:calc(var(--bar) + 18px) 34px 150px;overflow:auto}
+#home.show{display:grid;grid-template-columns:minmax(280px,38%) 1fr;gap:34px;align-content:start}
+.glass{background:var(--glass);border:1px solid var(--line);border-radius:28px;backdrop-filter:blur(22px) saturate(1.4);-webkit-backdrop-filter:blur(22px) saturate(1.4);box-shadow:0 10px 30px #0005}
+#left{display:flex;flex-direction:column;gap:18px}
+#clock{padding:22px 26px}
+#clock .t{font-size:78px;font-weight:300;line-height:1;letter-spacing:-.02em}
+#clock .d{margin-top:6px;color:var(--sub);font-size:16px;text-transform:capitalize}
+#truck{padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+#truck .k{font-size:11px;color:var(--sub);letter-spacing:.12em;text-transform:uppercase}
+#truck .v{font-size:34px;font-weight:600;font-variant-numeric:tabular-nums}
+#truck .v small{font-size:14px;color:var(--sub);font-weight:500;margin-left:3px}
+#truck .full{grid-column:1/-1}
+.bar{height:8px;border-radius:5px;background:#fff2;overflow:hidden;margin-top:8px}
+#fuelbar{height:100%;width:0;background:var(--accent);border-radius:5px;transition:width .6s,background .6s}
+#np{padding:16px 22px;display:flex;align-items:center;gap:14px;cursor:pointer}
+#np .ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,#a855f7,#6d28d9)}
+#np small{color:var(--sub);display:block;font-size:12px}
+#grid .app.drag{position:fixed;z-index:200;pointer-events:none;opacity:.85;transform:scale(1.1)}#grid .app.ghost{opacity:.25}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:26px 18px;align-content:start;padding-top:8px}
+.app{display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;transition:transform .12s}
+.app:not(.page):active{transform:scale(.92)}
+.page.app{cursor:default;transition:none}.page.app:active{transform:none}
+.ic{width:88px;height:88px;border-radius:26px;display:grid;place-items:center;box-shadow:0 8px 20px #0007,inset 0 1px 0 #fff4,inset 0 -10px 20px #0003}
+.ic svg{width:48px;height:48px;fill:#fff}
+.app span{font-size:14px;font-weight:500;text-shadow:0 1px 4px #000a}
+/* dock */
+#dock{position:fixed;left:50%;bottom:calc(var(--gest) + 12px);transform:translateX(-50%);display:flex;gap:18px;padding:12px 20px;border-radius:34px;z-index:25}
+#dock .ic{width:68px;height:68px;border-radius:21px}#dock .ic svg{width:38px;height:38px}
+#dock.hide{display:none}
+/* barre de gestes */
+#gest{position:fixed;left:0;right:0;bottom:0;height:var(--gest);display:flex;justify-content:center;align-items:center;gap:90px;z-index:40;background:linear-gradient(#0000,#000a)}
+#gest button{background:none;border:0;color:#fff;opacity:.75;width:60px;height:var(--gest);cursor:pointer;display:grid;place-items:center;padding:0}
+#gest button:active{opacity:1}
+#gest svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+#gest #b-kb{left:18px;right:auto;font-size:22px}
+#gest .sc{position:absolute;right:18px;width:54px!important;font-size:18px;color:#fff}#gest #b-up{right:78px}#gest #b-dn{right:18px}
+#gest #b-home i{display:block;width:120px;height:5px;border-radius:3px;background:#fff}
+/* recents */
+#recents{position:fixed;inset:0;background:#05080fcc;backdrop-filter:blur(26px);z-index:35;display:none;padding:calc(var(--bar) + 30px) 40px var(--gest);align-items:center;gap:24px;overflow-x:auto}
+#recents.show{display:flex}
+.card{width:260px;flex:none;cursor:pointer;display:flex;flex-direction:column;gap:12px;align-items:center}
+.card .pv{width:100%;height:340px;border-radius:26px;display:grid;place-items:center;position:relative;box-shadow:0 14px 34px #0008}
+.card .pv svg{width:90px;height:90px;fill:#fff}
+.card .x{position:absolute;top:10px;right:10px;border:0;background:#0006;color:#fff;border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer}
+.card b{font-weight:600}
+#empty{margin:auto;color:var(--sub);font-size:18px}
+/* reglages */
+.settings{position:absolute;inset:0;padding:calc(var(--bar) + 20px) 34px 80px;overflow-y:auto;max-width:none}
+.sbtns{position:absolute;right:12px;bottom:calc(var(--gest) + 10px);display:flex;flex-direction:column;gap:8px;z-index:6}.sbtns button{width:46px;height:46px;border-radius:50%;border:0;background:var(--accent);color:#1a1200;font-size:20px;font-weight:800;cursor:pointer;opacity:.92}
+.settings h2{margin:0 0 6px;font-size:30px;font-weight:600}.settings p{color:var(--sub);margin:0 0 16px}
+.settings input{width:100%;background:var(--glass2);border:1px solid var(--line);color:#fff;border-radius:16px;padding:15px 18px;font-size:16px;margin-bottom:12px;outline:none}
+.settings input:focus{border-color:var(--accent)}
+.btn{background:var(--accent);color:#1a1200;font-weight:700;border:0;border-radius:16px;padding:14px 22px;font-size:16px;cursor:pointer}
+.btn.d{background:#ff453a33;color:#ff8d85;padding:10px 16px}
+.settings li{list-style:none;margin:10px 0;padding:14px 18px;border-radius:18px;display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--glass2);border:1px solid var(--line)}
+.settings ul{padding:0}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:6px;border:2px solid transparent;background-clip:padding-box}::-webkit-scrollbar-thumb:hover{background:#fff;background-clip:padding-box}
+#osk{position:fixed;left:0;right:0;bottom:var(--gest);z-index:45;display:none;background:rgba(14,18,28,.96);border-top:1px solid var(--line);padding:8px 10px 6px;backdrop-filter:blur(12px)}
+#osk.show{display:block}.kr{display:flex;gap:6px;justify-content:center;margin-bottom:6px}
+.ok{background:#2a3347;color:#fff;border:0;border-radius:10px;min-width:62px;height:42px;font-size:20px;font-weight:600;cursor:pointer;flex:0 0 auto}
+.ok.w{min-width:92px;background:#1e2636}.ok.sp{min-width:360px}.ok.on{background:var(--accent);color:#1a1200}.ok.a{background:var(--accent);color:#1a1200}
+@media (max-height:560px){.ok{height:38px;font-size:18px;min-width:58px}}
+#ptr,#touchbadge{display:none!important}
+.chips{display:flex;flex-wrap:wrap;gap:10px}.chip{background:var(--glass2);border:1px solid var(--line);color:#fff;border-radius:16px;padding:12px 18px;font-size:17px;cursor:pointer}.chip.on{background:var(--accent);color:#1a1200;font-weight:700;border-color:transparent}
+.keys{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}.krow{display:flex;align-items:center;gap:12px;background:var(--glass2);border:1px solid var(--line);border-radius:16px;padding:10px 14px}.krow .kn{flex:1;font-size:16px}.krow .kv{min-width:70px;text-align:center;font-weight:700;font-size:18px;background:#0006;border-radius:10px;padding:6px 10px}.krow .kv.wait{background:var(--accent);color:#1a1200}.btn.s{padding:8px 14px;font-size:15px}
+#ptr{position:fixed;left:0;top:0;z-index:9999;pointer-events:none;display:none;transform:translate(-4px,-2px)}
+#ptr.down svg{transform:scale(.82)}#ptr:after{content:'';position:absolute;left:-12px;top:-12px;width:30px;height:30px;border-radius:50%;border:3px solid var(--accent);opacity:0}
+#ptr.down:after{opacity:.9}
+#touchbadge{position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:9998;background:var(--accent);color:#1a1200;font-weight:800;font-size:13px;padding:4px 14px;border-radius:14px;display:none;letter-spacing:.08em}
+@media (max-height:560px){
+ :root{--bar:36px;--gest:26px}
+ #status{font-size:15px;padding:0 20px}#status svg{width:19px;height:19px}
+ #home{padding:calc(var(--bar) + 6px) 22px 48px;gap:20px;grid-template-columns:minmax(260px,38%) 1fr}
+ #left{gap:10px}
+ #clock{padding:10px 18px;border-radius:20px}#clock .t{font-size:54px}#clock .d{font-size:14px}
+ #truck{padding:10px 16px;gap:6px 14px;border-radius:20px}#truck .k{font-size:11px}#truck .v{font-size:26px}#truck .v small{font-size:13px}
+ #np{display:none}
+ #grid{grid-template-columns:repeat(4,1fr);gap:12px 8px;padding-top:2px}
+ .ic{width:68px;height:68px;border-radius:20px}.ic svg{width:36px;height:36px}.app span{font-size:13px;font-weight:600}
+ #dock{display:none}
+ #gest button{height:var(--gest)}#gest svg{width:16px;height:16px}#gest #b-home i{width:120px;height:5px}
+ .page iframe{top:var(--bar)}
+ .settings{padding-top:calc(var(--bar) + 12px)!important}
+ .settings h2{font-size:21px}.settings p{font-size:13px}.chip{font-size:14px!important;padding:8px 13px!important}.krow .kn{font-size:14px!important}.krow .kv{font-size:15px!important}
+}
+.native{display:grid;place-items:center;height:100%;text-align:center;padding:30px;color:var(--sub)}
+.native b{color:#fff;font-size:26px;display:block;margin-bottom:10px}.native a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="wall"></div>
+<div id="status"><span id="st-clock">--:--</span><span id="st-title"></span><span class="sp"></span><span id="st-speed">0 km/h</span>
+ <svg id="st-gps" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+ <svg viewBox="0 0 24 24"><path d="M2 20h3v-4H2zm5 0h3v-8H7zm5 0h3V8h-3zm5 0h3V3h-3z"/></svg>
+ <svg viewBox="0 0 24 24"><path d="M16 7V5h-2V3h-4v2H8v2H6v14h12V7z" opacity=".95"/></svg></div>
+<div id="stage">
+ <div class="page show" id="home">
+  <div id="left">
+   <div class="glass" id="clock"><div class="t" id="c-t">--:--</div><div class="d" id="c-d"></div></div>
+   <div class="glass" id="truck">
+    <div><div class="k" data-i="speed">Vitesse</div><div class="v"><span id="t-speed">0</span><small>km/h</small></div></div>
+    <div><div class="k" data-i="range">Autonomie</div><div class="v"><span id="t-range">0</span><small>km</small></div></div>
+    <div class="full"><div class="k" data-i="fuel">Carburant</div><div class="bar"><div id="fuelbar"></div></div></div>
+   </div>
+   <div class="glass" id="np"><div class="ic" style="width:46px;height:46px;border-radius:14px"></div><div><b id="np-t">Radio</b><small id="np-s" data-i="nothing">Aucune lecture</small></div></div>
+  </div>
+  <div id="grid"></div>
+ </div>
+</div>
+<div class="glass" id="dock"></div>
+<div id="ptr"><svg viewBox="0 0 24 24" width="34" height="34"><path d="M4 2l15 9-6.500 1.800L9.800 20z" fill="#fff" stroke="#000" stroke-width="1.600" stroke-linejoin="round"/></svg></div><div id="touchbadge">MODE TOUCHER</div>
+<div id="osk"></div>
+<div id="recents"></div>
+<div id="gest"><button id="b-back" title="Retour"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><button id="b-home" title="Accueil"><i></i></button><button id="b-kb" class="sc" title="Keyboard">⌨</button><button id="b-dn" class="sc" title="Scroll ▼">▼</button><button id="b-up" class="sc" title="Scroll ▲">▲</button><button id="b-rec" title="Applications ouvertes"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3"/></svg></button></div>
+
+<script>
+'use strict';
+/* Truck Tablet : shell multi-pages. Apps = pages web (iframe) decrites par {id,name,glyph,color,url,type}.
+   Telemetrie relayee aux apps: {tablet:1,type:'telemetry',data}. Apps -> shell: {tablet:1,type:'open'|'home'|'hello'}.
+   Apps externes (YouTube Music, Deezer...) : en hote WebView2 elles s'ouvrent en vue native (host=native). */
+const $=id=>document.getElementById(id);
+const G={ // glyphes SVG (viewBox 24)
+ nav:'<path d="M12 2l8 19-8-4-8 4z"/>',
+ radio:'<path d="M4 8h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2zm1 3v7h8v-7zm11 1.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM4 6l14-4 .6 1.9L4.9 7.9z"/>',
+ play:'<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-2 5.5l7 4.5-7 4.5z"/>',
+ deezer:'<path d="M3 17h4v3H3zm5 0h4v3H8zm5 0h4v3h-4zm5 0h4v3h-4zM13 12h4v3h-4zm5 0h4v3h-4zM18 7h4v3h-4zM3 12h4v3H3zm5 0h4v3H8z"/>',
+ spot:'<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.6 14.4a.8.8 0 0 1-1.1.3c-3-1.8-6.700-2.200-11.100-1.200a.8.8 0 1 1-.4-1.500c4.800-1.100 8.900-.6 12.300 1.400.4.200.5.700.3 1zm1.500-3.400a1 1 0 0 1-1.400.3c-3.400-2.100-8.600-2.700-12.600-1.500a1 1 0 0 1-.6-1.900c4.600-1.400 10.300-.7 14.200 1.700.5.300.6.900.4 1.400zm.1-3.500C14.200 7.100 7.700 6.900 3.900 8.100a1.200 1.200 0 1 1-.7-2.300c4.300-1.300 11.500-1.100 16 1.600a1.200 1.200 0 0 1-1.200 2.100z"/>',
+ gear:'<path d="M19.400 13a7.500 7.500 0 0 0 0-2l2.100-1.600-2-3.500-2.500 1a7.500 7.500 0 0 0-1.700-1L15 3h-4l-.4 2.900a7.500 7.500 0 0 0-1.700 1l-2.500-1-2 3.500L6.600 11a7.500 7.500 0 0 0 0 2l-2.100 1.600 2 3.500 2.500-1c.5.400 1.100.7 1.700 1L11 21h4l.4-2.900c.6-.3 1.200-.6 1.700-1l2.500 1 2-3.500zM13 15.500a3.500 3.500 0 1 1 0-7 3.500 3.500 0 0 1 0 7z"/>',
+ bag:'<path d="M6 7V6a6 6 0 0 1 12 0v1h3l-1.200 14H4.200L3 7zm2 0h8V6a4 4 0 0 0-8 0zm-.5 3v2a1 1 0 0 0 2 0v-2zm7 0v2a1 1 0 0 0 2 0v-2z"/>',
+ puzzle:'<path d="M20 11h-1V7a2 2 0 0 0-2-2h-4V4a2 2 0 1 0-4 0v1H5a2 2 0 0 0-2 2v4h1a2 2 0 1 1 0 4H3v4a2 2 0 0 0 2 2h4v-1a2 2 0 1 1 4 0v1h4a2 2 0 0 0 2-2v-4h1a2 2 0 1 0 0-4z"/>'
+};
+const BUILTIN=[
+ {id:'gps',nk:'nav',name:'Navigation',glyph:'nav',color:'linear-gradient(145deg,#f7b733,#d9820b)',url:'../index.html',type:'local',dock:1},
+ {id:'radio',nk:'radio',name:'Radio',glyph:'radio',color:'linear-gradient(145deg,#a855f7,#6d28d9)',url:'apps/radio/index.html',type:'local',dock:1},
+ {id:'store',name:'Farbound Store',glyph:'bag',color:'linear-gradient(145deg,#26c6da,#00796b)',url:'apps/store/index.html',type:'local'},
+ {id:'settings',nk:'settings',name:'Réglages',glyph:'gear',color:'linear-gradient(145deg,#7b8494,#444b59)',url:'#settings',type:'system',dock:1}
+];
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+const store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+let userApps=load('tablet.apps',[]);
+/* ===== Versions : version de la tablette + verification des mises a jour (GitHub Releases) ===== */
+const TABLET_VERSION='1.0.0',TABLET_REPO='FarboundStudios/farbound-tab';
+const verParts=v=>String(v||'0').replace(/^v/i,'').split(/[.+-]/).slice(0,3).map(x=>parseInt(x,10)||0);
+const cmpVer=(a,b)=>{const x=verParts(a),y=verParts(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return(x[i]||0)>(y[i]||0)?1:-1}return 0};
+let updInfo=load('tab.update',null),updState=updInfo&&cmpVer(updInfo.tag,TABLET_VERSION)>0?'avail':'idle';
+async function checkUpdate(manual){
+  if(manual){updState='checking';rebuildSettings()}
+  try{const c=new AbortController(),h=setTimeout(()=>c.abort(),8000);
+    const r=await fetch('https://api.github.com/repos/'+TABLET_REPO+'/releases/latest',{headers:{Accept:'application/vnd.github+json'},signal:c.signal,cache:'no-store'});clearTimeout(h);
+    if(r.status===404){updInfo={tag:TABLET_VERSION,at:Date.now()};updState='none'}
+    else{if(!r.ok)throw 0;const j=await r.json();updInfo={tag:j.tag_name,name:j.name,url:j.html_url,notes:(j.body||'').slice(0,600),at:Date.now()};updState=cmpVer(j.tag_name,TABLET_VERSION)>0?'avail':'none'}
+    store('tab.update',updInfo)}
+  catch{updState=manual?'err':updState}
+  rebuildSettings()}
+setTimeout(()=>{if(!updInfo||Date.now()-(updInfo.at||0)>12*3600e3)checkUpdate(false)},8000);
+const allApps=()=>BUILTIN.concat(userApps);
+const byId=id=>allApps().find(a=>a.id===id);
+const DLLMODE=new URLSearchParams(location.search).get('host')==='dll';
+const NATIVE=!DLLMODE&&(new URLSearchParams(location.search).get('host')==='native'||!!window.chrome?.webview);
+/* ===== Langues (FR, EN, DE, IT, ES) : par defaut la langue du jeu (config.cfg), modifiable dans Reglages ===== */
+const I18N={
+ fr:{d_title:'Farbound Drive (tableau de bord)',d_theme:'Style',d_auto:'Auto (marque du camion)',d_accent:'Couleur',d_layout:'Disposition',d_classic:'Classique',d_sport:'Sport',d_minimal:'Minimal',d_units:'Unités',d_show:'Éléments affichés',d_limit:'Limite',d_clock:'Heure',d_odo:'Compteur',d_fuel:'Carburant',d_adblue:'AdBlue',d_temp:'Température',d_range:'Autonomie',d_cruise:'Régulateur',d_gear:'Rapport',d_rpm:'Compte-tours', nav:'Navigation',radio:'Radio',ytm:'YouTube Music',deezer:'Deezer',spotify:'Spotify',settings:'Réglages',speed:'Vitesse',range:'Autonomie',fuel:'Carburant',nothing:'Aucune lecture',noapps:'Aucune application ouverte',
+  s_lang:'Langue',s_appzoom:'Zoom des apps web',s_auto:'Automatique (langue du jeu)',s_size:'Taille de l’interface',s_keys:'Commandes du curseur',s_keys_help:'Touchez « Modifier » puis appuyez sur la touche voulue (Échap pour annuler).',s_reset:'Réinitialiser',s_change:'Modifier',s_press:'Appuyez sur une touche…',
+  a_toggle:'Activer / désactiver le curseur',a_up:'Haut',a_down:'Bas',a_left:'Gauche',a_right:'Droite',a_click:'Clic',a_back:'Retour',a_home:'Accueil',a_scrollup:'Défiler vers le haut',a_scrolldown:'Défiler vers le bas',
+  s_apps:'Applications',s_apps_help:'Ajoutez une app web comme sur un téléphone : adresse d’un manifest.json ou d’une page.',s_install:'Installer',s_remove:'Supprimer',s_about:'À propos',s_web:'Ce service ne peut pas être affiché ici.'},
+ en:{d_title:'Farbound Drive (instrument cluster)',d_theme:'Style',d_auto:'Auto (truck brand)',d_accent:'Color',d_layout:'Layout',d_classic:'Classic',d_sport:'Sport',d_minimal:'Minimal',d_units:'Units',d_show:'Shown items',d_limit:'Limit',d_clock:'Clock',d_odo:'Odometer',d_fuel:'Fuel',d_adblue:'AdBlue',d_temp:'Temperature',d_range:'Range',d_cruise:'Cruise',d_gear:'Gear',d_rpm:'Tachometer', nav:'Navigation',radio:'Radio',ytm:'YouTube Music',deezer:'Deezer',spotify:'Spotify',settings:'Settings',speed:'Speed',range:'Range',fuel:'Fuel',nothing:'Nothing playing',noapps:'No open apps',
+  s_lang:'Language',s_appzoom:'Web apps zoom',s_auto:'Automatic (game language)',s_size:'Interface size',s_keys:'Pointer controls',s_keys_help:'Tap “Change” then press the key you want (Esc to cancel).',s_reset:'Reset',s_change:'Change',s_press:'Press a key…',
+  a_toggle:'Toggle pointer',a_up:'Up',a_down:'Down',a_left:'Left',a_right:'Right',a_click:'Click',a_back:'Back',a_home:'Home',a_scrollup:'Scroll up',a_scrolldown:'Scroll down',
+  s_apps:'Apps',s_apps_help:'Add a web app like on a phone: the address of a manifest.json or of a page.',s_install:'Install',s_remove:'Remove',s_about:'About',s_web:'This service cannot be displayed here.'},
+ de:{d_title:'Farbound Drive (Kombiinstrument)',d_theme:'Stil',d_auto:'Auto (Lkw-Marke)',d_accent:'Farbe',d_layout:'Layout',d_classic:'Klassisch',d_sport:'Sport',d_minimal:'Minimal',d_units:'Einheiten',d_show:'Angezeigte Elemente',d_limit:'Limit',d_clock:'Uhr',d_odo:'Kilometerzähler',d_fuel:'Kraftstoff',d_adblue:'AdBlue',d_temp:'Temperatur',d_range:'Reichweite',d_cruise:'Tempomat',d_gear:'Gang',d_rpm:'Drehzahlmesser', nav:'Navigation',radio:'Radio',ytm:'YouTube Music',deezer:'Deezer',spotify:'Spotify',settings:'Einstellungen',speed:'Geschwindigkeit',range:'Reichweite',fuel:'Kraftstoff',nothing:'Keine Wiedergabe',noapps:'Keine geöffneten Apps',
+  s_lang:'Sprache',s_appzoom:'Web-App-Zoom',s_auto:'Automatisch (Spielsprache)',s_size:'Oberflächengröße',s_keys:'Zeigersteuerung',s_keys_help:'„Ändern“ antippen und dann die gewünschte Taste drücken (Esc zum Abbrechen).',s_reset:'Zurücksetzen',s_change:'Ändern',s_press:'Taste drücken…',
+  a_toggle:'Zeiger ein/aus',a_up:'Hoch',a_down:'Runter',a_left:'Links',a_right:'Rechts',a_click:'Klick',a_back:'Zurück',a_home:'Start',a_scrollup:'Nach oben scrollen',a_scrolldown:'Nach unten scrollen',
+  s_apps:'Apps',s_apps_help:'Web-App wie auf dem Handy hinzufügen: Adresse einer manifest.json oder einer Seite.',s_install:'Installieren',s_remove:'Entfernen',s_about:'Info',s_web:'Dieser Dienst kann hier nicht angezeigt werden.'},
+ it:{d_title:'Farbound Drive (quadro strumenti)',d_theme:'Stile',d_auto:'Auto (marca del camion)',d_accent:'Colore',d_layout:'Layout',d_classic:'Classico',d_sport:'Sport',d_minimal:'Minimale',d_units:'Unità',d_show:'Elementi mostrati',d_limit:'Limite',d_clock:'Ora',d_odo:'Contachilometri',d_fuel:'Carburante',d_adblue:'AdBlue',d_temp:'Temperatura',d_range:'Autonomia',d_cruise:'Cruise',d_gear:'Marcia',d_rpm:'Contagiri', nav:'Navigazione',radio:'Radio',ytm:'YouTube Music',deezer:'Deezer',spotify:'Spotify',settings:'Impostazioni',speed:'Velocità',range:'Autonomia',fuel:'Carburante',nothing:'Nessuna riproduzione',noapps:'Nessuna app aperta',
+  s_lang:'Lingua',s_appzoom:'Zoom app web',s_auto:'Automatica (lingua del gioco)',s_size:'Dimensione interfaccia',s_keys:'Controlli del puntatore',s_keys_help:'Tocca “Cambia” e poi premi il tasto desiderato (Esc per annullare).',s_reset:'Ripristina',s_change:'Cambia',s_press:'Premi un tasto…',
+  a_toggle:'Attiva/disattiva puntatore',a_up:'Su',a_down:'Giù',a_left:'Sinistra',a_right:'Destra',a_click:'Clic',a_back:'Indietro',a_home:'Home',a_scrollup:'Scorri su',a_scrolldown:'Scorri giù',
+  s_apps:'App',s_apps_help:'Aggiungi una web app come su un telefono: indirizzo di un manifest.json o di una pagina.',s_install:'Installa',s_remove:'Rimuovi',s_about:'Info',s_web:'Questo servizio non può essere mostrato qui.'},
+ es:{d_title:'Farbound Drive (cuadro de instrumentos)',d_theme:'Estilo',d_auto:'Auto (marca del camión)',d_accent:'Color',d_layout:'Disposición',d_classic:'Clásico',d_sport:'Deportivo',d_minimal:'Mínimo',d_units:'Unidades',d_show:'Elementos mostrados',d_limit:'Límite',d_clock:'Hora',d_odo:'Cuentakilómetros',d_fuel:'Combustible',d_adblue:'AdBlue',d_temp:'Temperatura',d_range:'Autonomía',d_cruise:'Control de crucero',d_gear:'Marcha',d_rpm:'Cuentarrevoluciones', nav:'Navegación',radio:'Radio',ytm:'YouTube Music',deezer:'Deezer',spotify:'Spotify',settings:'Ajustes',speed:'Velocidad',range:'Autonomía',fuel:'Combustible',nothing:'Sin reproducción',noapps:'No hay apps abiertas',
+  s_lang:'Idioma',s_appzoom:'Zoom de apps web',s_auto:'Automático (idioma del juego)',s_size:'Tamaño de la interfaz',s_keys:'Controles del puntero',s_keys_help:'Toca «Cambiar» y pulsa la tecla que quieras (Esc para cancelar).',s_reset:'Restablecer',s_change:'Cambiar',s_press:'Pulsa una tecla…',
+  a_toggle:'Activar/desactivar puntero',a_up:'Arriba',a_down:'Abajo',a_left:'Izquierda',a_right:'Derecha',a_click:'Clic',a_back:'Atrás',a_home:'Inicio',a_scrollup:'Desplazar arriba',a_scrolldown:'Desplazar abajo',
+  s_apps:'Aplicaciones',s_apps_help:'Añade una app web como en un móvil: dirección de un manifest.json o de una página.',s_install:'Instalar',s_remove:'Eliminar',s_about:'Acerca de',s_web:'Este servicio no se puede mostrar aquí.'}
+};
+Object.assign(I18N.fr,{d_variant:'Variante (marque)',d_layoutauto:'Auto (selon la variante)',d_add:'Ajouter une variante : déposez un fichier .json dans Documents\\Farbound Tab\\drive-variants (un exemple et un LISEZMOI y sont créés).'});
+Object.assign(I18N.en,{d_variant:'Variant (brand)',d_layoutauto:'Auto (from variant)',d_add:'Add a variant: drop a .json file in Documents\\Farbound Tab\\drive-variants (an example and a README are created there).'});
+Object.assign(I18N.de,{d_variant:'Variante (Marke)',d_layoutauto:'Auto (je nach Variante)',d_add:'Variante hinzufügen: .json-Datei in Documents\\Farbound Tab\\drive-variants ablegen (Beispiel und README sind dort vorhanden).'});
+Object.assign(I18N.it,{d_variant:'Variante (marca)',d_layoutauto:'Auto (dalla variante)',d_add:'Aggiungi una variante: inserisci un file .json in Documents\\Farbound Tab\\drive-variants (ci sono un esempio e un LEGGIMI).'});
+Object.assign(I18N.es,{d_variant:'Variante (marca)',d_layoutauto:'Auto (según la variante)',d_add:'Añadir una variante: deja un archivo .json en Documents\\Farbound Tab\\drive-variants (se crean un ejemplo y un LÉEME).'});
+Object.assign(I18N.fr,{s_wall:'Fond d’écran',s_wall_color:'Couleur unie',s_wall_img:'Image…',s_wall_url:'Adresse d’une image (https://…)',s_wall_ok:'Appliquer',s_layout:'Disposition des apps',s_layout_help:'Faites glisser une icône de l’accueil (clic gauche maintenu) pour la placer où vous voulez.',s_layout_reset:'Réinitialiser la disposition'});
+Object.assign(I18N.en,{s_wall:'Wallpaper',s_wall_color:'Solid color',s_wall_img:'Image…',s_wall_url:'Image address (https://…)',s_wall_ok:'Apply',s_layout:'App layout',s_layout_help:'Drag a home icon (hold left click) to place it anywhere you like.',s_layout_reset:'Reset layout'});
+Object.assign(I18N.de,{s_wall:'Hintergrund',s_wall_color:'Einfarbig',s_wall_img:'Bild…',s_wall_url:'Bildadresse (https://…)',s_wall_ok:'Anwenden',s_layout:'App-Anordnung',s_layout_help:'Symbol mit gedrückter linker Maustaste ziehen, um es zu platzieren.',s_layout_reset:'Anordnung zurücksetzen'});
+Object.assign(I18N.it,{s_wall:'Sfondo',s_wall_color:'Tinta unita',s_wall_img:'Immagine…',s_wall_url:'Indirizzo immagine (https://…)',s_wall_ok:'Applica',s_layout:'Disposizione app',s_layout_help:'Trascina un’icona (clic sinistro premuto) per spostarla dove vuoi.',s_layout_reset:'Ripristina disposizione'});
+Object.assign(I18N.es,{s_wall:'Fondo de pantalla',s_wall_color:'Color liso',s_wall_img:'Imagen…',s_wall_url:'Dirección de imagen (https://…)',s_wall_ok:'Aplicar',s_layout:'Disposición de apps',s_layout_help:'Arrastra un icono (clic izquierdo mantenido) para colocarlo donde quieras.',s_layout_reset:'Restablecer disposición'});
+Object.assign(I18N.fr,{s_version:'Version',s_upd_check:'Rechercher des mises à jour',s_upd_checking:'Recherche…',s_upd_none:'La tablette est à jour.',s_upd_avail:'Mise à jour disponible :',s_upd_err:'Impossible de joindre GitHub.',s_upd_where:'Téléchargez-la dans les Releases : github.com/FarboundStudios/farbound-tab/releases'});
+Object.assign(I18N.en,{s_version:'Version',s_upd_check:'Check for updates',s_upd_checking:'Checking…',s_upd_none:'The tablet is up to date.',s_upd_avail:'Update available:',s_upd_err:'Could not reach GitHub.',s_upd_where:'Download it from Releases: github.com/FarboundStudios/farbound-tab/releases'});
+Object.assign(I18N.de,{s_version:'Version',s_upd_check:'Nach Updates suchen',s_upd_checking:'Suche…',s_upd_none:'Das Tablet ist aktuell.',s_upd_avail:'Update verfügbar:',s_upd_err:'GitHub nicht erreichbar.',s_upd_where:'Download unter Releases: github.com/FarboundStudios/farbound-tab/releases'});
+Object.assign(I18N.it,{s_version:'Versione',s_upd_check:'Cerca aggiornamenti',s_upd_checking:'Ricerca…',s_upd_none:'Il tablet è aggiornato.',s_upd_avail:'Aggiornamento disponibile:',s_upd_err:'Impossibile contattare GitHub.',s_upd_where:'Scaricalo da Releases: github.com/FarboundStudios/farbound-tab/releases'});
+Object.assign(I18N.es,{s_version:'Versión',s_upd_check:'Buscar actualizaciones',s_upd_checking:'Buscando…',s_upd_none:'La tableta está actualizada.',s_upd_avail:'Actualización disponible:',s_upd_err:'No se pudo contactar con GitHub.',s_upd_where:'Descárgala en Releases: github.com/FarboundStudios/farbound-tab/releases'});
+let USERVARS=[];
+async function loadUserVars(files){const out=[];for(const f of files||[]){try{const j=await (await fetch('https://user.local/drive-variants/'+encodeURIComponent(f),{cache:'no-store'})).json();if(j&&j.id)out.push(j)}catch{}}USERVARS=out;rebuildSettings()}
+const LANGS=[['fr','Français'],['en','English'],['de','Deutsch'],['it','Italiano'],['es','Español']];
+const LOCALES={fr:'fr-FR',en:'en-GB',de:'de-DE',it:'it-IT',es:'es-ES'};
+let appZoom=load('tab.appzoom',125),langPref=load('tab.lang','auto'),gameLang='en',uiScale=Math.min(130,Math.max(60,load('tab.scale',100))),cfgState=null;
+const supported=c=>I18N[c]?c:'en';
+const curLang=()=>langPref==='auto'?supported(gameLang):supported(langPref);
+const T=k=>(I18N[curLang()][k]??I18N.en[k]??k);
+const appName=a=>a.nk?T(a.nk):a.name;
+function applyLang(){
+  document.documentElement.lang=curLang();
+  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=T(e.dataset.i));
+  renderGrid();if(current!=='home'&&byId(current))$('st-title').textContent=appName(byId(current));
+  rebuildSettings();broadcast({type:'prefs',lang:curLang(),scale:uiScale});
+}
+addEventListener('resize',()=>{if($('grid'))placeAll()});
+function applyScale(){document.documentElement.style.zoom=(uiScale/100);broadcast({type:'prefs',lang:curLang(),scale:uiScale});setTimeout(()=>{try{syncDll()}catch{}},50)}
+
+const pages=new Map();let order=[],current='home';
+function icon(a,cls){const d=document.createElement('div');d.className=cls;d.style.background=a.color||'linear-gradient(145deg,#5b6b86,#323c50)';
+  if(a.icon){const im=document.createElement('img');im.src=a.icon;im.draggable=false;im.style.cssText=a.iconFit==='cover'?'width:100%;height:100%;object-fit:cover':'width:60%;height:60%;object-fit:contain';d.style.display='grid';d.style.placeItems='center';d.style.overflow='hidden';d.append(im)}else if(a.emoji){d.textContent=a.emoji;d.style.display='grid';d.style.placeItems='center';d.style.fontSize='34px'}else d.innerHTML='<svg viewBox="0 0 24 24">'+(G[a.glyph]||G.puzzle)+'</svg>';return d}
+/* ===== Fond d'ecran ===== */
+const WALLS={night:null,sunset:'linear-gradient(160deg,#2b1055,#7a3b8f 45%,#f2784b)',ocean:'linear-gradient(160deg,#021b3a,#0b5d8a 55%,#38b6c9)',forest:'linear-gradient(160deg,#07140f,#14402d 55%,#3c7a4a)',graphite:'linear-gradient(160deg,#101214,#23272d 60%,#3a4048)',dawn:'linear-gradient(160deg,#16213e,#e94560 70%,#f9d56e)'};
+let wallCfg=load('tab.wall',{t:'preset',v:'night'});
+function applyWall(){const w=$('wall');w.classList.remove('plain');w.style.background='';
+  if(wallCfg.t==='preset'&&WALLS[wallCfg.v]){w.style.background=WALLS[wallCfg.v];w.classList.add('plain')}
+  else if(wallCfg.t==='color'){w.style.background=wallCfg.v;w.classList.add('plain')}
+  else if(wallCfg.t==='image'&&wallCfg.v){w.style.background='url("'+wallCfg.v.replace(/"/g,'%22')+'") center/cover no-repeat,#000';w.classList.add('plain')}}
+function setWall(c){wallCfg=c;store('tab.wall',c);applyWall()}
+async function wallFromFile(f){const url=URL.createObjectURL(f);const im=new Image();await new Promise((r,j)=>{im.onload=r;im.onerror=j;im.src=url});
+  const k=Math.min(1,1280/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);URL.revokeObjectURL(url);
+  setWall({t:'image',v:cv.toDataURL('image/jpeg',.82)})}
+/* ===== Disposition libre des apps (clic droit maintenu = deplacer) ===== */
+let layout=load('tab.layout',{}),dragEnd=0;
+const gridCols=()=>Math.max(1,getComputedStyle($('grid')).gridTemplateColumns.split(' ').length);
+const cellOf=(id,cols)=>{const p=layout[id];return p?{c:Math.min(p.c,cols),r:p.r}:null};
+function placeAll(){const g=$('grid'),cols=gridCols(),used=new Set(),apps=allApps();
+  for(const a of apps){const p=cellOf(a.id,cols);if(p)used.add(p.c+','+p.r)}
+  for(const a of apps){if(!layout[a.id]){let k=0,c,r;do{c=k%cols+1;r=Math.floor(k/cols)+1;k++}while(used.has(c+','+r));layout[a.id]={c,r};used.add(c+','+r)}}
+  for(const e of g.children){const p=cellOf(e.dataset.id,cols);if(p){e.style.gridColumn=p.c;e.style.gridRow=p.r}}}
+function startDrag(e,el,id){
+  const g=$('grid'),r0=el.getBoundingClientRect(),cols=gridCols(),cs=getComputedStyle(g),gapX=parseFloat(cs.columnGap)||0,gapY=parseFloat(cs.rowGap)||0;
+  const cw=(g.getBoundingClientRect().width-gapX*(cols-1))/cols,rh=r0.height+gapY,dx=e.clientX-r0.left,dy=e.clientY-r0.top;let on=false;
+  const mv=m=>{if(!on&&Math.hypot(m.clientX-e.clientX,m.clientY-e.clientY)<6)return;
+    if(!on){on=true;el.classList.add('ghost');el._clone=el.cloneNode(true);el._clone.classList.add('drag');el._clone.style.width=r0.width+'px';document.body.append(el._clone)}
+    el._clone.style.left=(m.clientX-dx)+'px';el._clone.style.top=(m.clientY-dy)+'px'};
+  const up=m=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);
+    if(!on)return;dragEnd=Date.now();el.classList.remove('ghost');if(el._clone){el._clone.remove();el._clone=null}
+    const gr=g.getBoundingClientRect();let c=Math.floor((m.clientX-gr.left+g.scrollLeft)/(cw+gapX))+1,r=Math.floor((m.clientY-gr.top+g.scrollTop)/rh)+1;c=Math.max(1,Math.min(cols,c));r=Math.max(1,r);
+    const old=layout[id],other=Object.keys(layout).find(k=>k!==id&&layout[k].c===c&&layout[k].r===r);
+    if(other&&old)layout[other]={c:old.c,r:old.r};layout[id]={c,r};store('tab.layout',layout);placeAll()};
+  addEventListener('pointermove',mv);addEventListener('pointerup',up)}
+function renderGrid(){
+  const g=$('grid');g.textContent='';
+  for(const a of allApps()){const e=document.createElement('div');e.className='app';e.dataset.id=a.id;e.append(icon(a,'ic'));
+    const s=document.createElement('span');s.textContent=appName(a);e.append(s);e.onclick=()=>{if(Date.now()-dragEnd<250)return;openApp(a.id)};
+    e.addEventListener('pointerdown',ev=>{if(ev.button===0||ev.button===2)startDrag(ev,e,a.id)});e.addEventListener('contextmenu',ev=>ev.preventDefault());g.append(e)}
+  placeAll();
+  const d=$('dock');d.textContent='';
+  for(const a of allApps().filter(a=>a.dock)){const e=icon(a,'ic');e.style.cursor='pointer';e.title=appName(a);e.onclick=()=>openApp(a.id);d.append(e)}
+}
+function pageFor(a){
+  if(a.type==='system')return settingsPage();
+  const el=document.createElement('div');el.className='page app';
+  if(a.type==='web'&&DLLMODE){el.innerHTML='<div class="native"><div></div></div>';el.querySelector('div div').textContent=a.name+' …';return el}
+  if(a.type==='web'&&NATIVE){el.innerHTML='<div class="native"><div>Chargement…</div></div>';return el}
+  if(a.type==='web'){
+    el.innerHTML='<div class="native"><div><b></b>Ce service ne peut pas être intégré dans une page web (X-Frame-Options).<br>Dans l’hôte WebView2 de la tablette, il s’ouvre en vue native.<br><br><a target="_blank" rel="noopener"></a></div></div>';
+    el.querySelector('b').textContent=a.name;const l=el.querySelector('a');l.href=a.url;l.textContent='Ouvrir dans le navigateur (test)';
+  }else{
+    const f=document.createElement('iframe');f.src=a.url;f.allow='autoplay; encrypted-media; fullscreen';
+    f.addEventListener('load',()=>{post(f,{type:'telemetry',data:last});post(f,{type:'prefs',lang:curLang(),scale:uiScale})});el.append(f);
+  }
+  return el;
+}
+function openApp(id){
+  const a=byId(id);if(!a)return;
+  if(!pages.has(id)){const el=pageFor(a);$('stage').append(el);pages.set(id,{el,app:a})}
+  if(NATIVE&&a.type==='web')toHost({type:'openWeb',id,url:a.url});
+  if(DLLMODE&&a.type==='web')dll('openWeb:'+id+'|'+a.url);
+  order=order.filter(x=>x!==id);order.push(id);show(id);
+}
+
+/* Pointeur JavaScript (repli si la fenetre enfant Chromium est introuvable) : evenements synthetiques, pages de meme origine uniquement */
+let JSPTR=false,_jd=false,_jt=null;
+function jsDeep(doc,x,y){let el=doc.elementFromPoint(x,y);
+  while(el&&el.tagName==='IFRAME'){try{const r=el.getBoundingClientRect();const d=el.contentDocument;if(!d)break;x-=r.left;y-=r.top;const e2=d.elementFromPoint(x,y);if(!e2)break;doc=d;el=e2}catch{break}}
+  return {el,doc,x,y}}
+function jsFire(t,type,x,y,btn){const w=t.doc.defaultView;t.el.dispatchEvent(new w.MouseEvent(type,{bubbles:true,cancelable:true,view:w,clientX:t.x,clientY:t.y,button:0,buttons:btn?1:0}))}
+function jsPtr(x,y,down){const t=jsDeep(document,x,y);if(!t.el)return;
+  jsFire(t,'mousemove',x,y,down);
+  if(down&&!_jd){_jd=true;_jt=t;jsFire(t,'mousedown',x,y,true)}
+  else if(!down&&_jd){_jd=false;jsFire(t,'mouseup',x,y,false);if(_jt&&_jt.el===t.el)jsFire(t,'click',x,y,false);_jt=null}}
+/* ===== Clavier virtuel (OSK) : saisie dans les champs des sites web et des pages de la tablette =====
+   Pages web (vues natives du DLL) : texte/touches envoyes par le DLL (CDP Input.insertText / dispatchKeyEvent).
+   Pages de la tablette : insertion JavaScript dans le champ actif. */
+const KBD={
+ fr:['azertyuiop','qsdfghjklm','⇧wxcvbn’⌫'],de:['qwertzuiop','asdfghjkl','⇧yxcvbnm⌫'],
+ en:['qwertyuiop','asdfghjkl','⇧zxcvbnm⌫'],it:['qwertyuiop','asdfghjkl','⇧zxcvbnm⌫'],es:['qwertyuiop','asdfghjklñ','⇧zxcvbnm⌫']};
+const KSYM=['1234567890','-/:;()€&@"','#+=.,?!\'⌫'];
+const KACC={fr:'éèêàâçùûîô',de:'äöüßÄÖÜ',it:'àèéìòù',es:'áéíóúü¿¡',en:''};
+let oskOn=false,oskShift=false,oskSym=false,oskAuto=false,oskDismissed=false;
+function webActive(){const a=byId(current);return DLLMODE&&a&&a.type==='web'}
+function jsActiveField(){let el=document.activeElement;while(el&&el.tagName==='IFRAME'){try{el=el.contentDocument.activeElement}catch{break}}return el}
+function jsType(ch){const el=jsActiveField();if(!el||!/^(INPUT|TEXTAREA)$/.test(el.tagName))return;
+  const s=el.selectionStart??el.value.length,e=el.selectionEnd??s;
+  if(ch==='\b'){if(s!==e)el.setRangeText('',s,e,'end');else if(s>0)el.setRangeText('',s-1,s,'end')}
+  else if(ch==='\n'){el.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));el.dispatchEvent(new KeyboardEvent('keyup',{key:'Enter',bubbles:true}));if(el.form&&el.form.requestSubmit)try{el.form.requestSubmit()}catch{};return}
+  else el.setRangeText(ch,s,e,'end');
+  el.dispatchEvent(new Event('input',{bubbles:true}))}
+let _ot=0;function oskType(ch){if(_ot++<4)dbg('osk: touche '+JSON.stringify(ch)+' web='+webActive()+' page='+current);if(webActive())dll('type:'+ch);else jsType(ch)}
+function oskKey(name){if(webActive())dll('key:'+name);else jsType(name==='Backspace'?'\b':name==='Enter'?'\n':'')}
+function renderOsk(){
+  const o=$('osk');o.textContent='';const lg=curLang();
+  const rows=oskSym?KSYM.slice():(KBD[lg]||KBD.en).slice();
+  const mkKey=(label,cls,fn)=>{const b=document.createElement('button');b.className='ok '+(cls||'');b.textContent=label;b.addEventListener('mousedown',e=>e.preventDefault());b.onclick=fn;return b};
+  if(oskSym&&KACC[lg]){const r=document.createElement('div');r.className='kr';for(const ch of KACC[lg])r.append(mkKey(ch,'',()=>oskType(ch)));o.append(r)}
+  rows.forEach((row,ri)=>{const r=document.createElement('div');r.className='kr';
+    for(const ch of row){
+      if(ch==='⇧')r.append(mkKey('⇧','w'+(oskShift?' on':''),()=>{oskShift=!oskShift;renderOsk()}));
+      else if(ch==='⌫')r.append(mkKey('⌫','w',()=>oskKey('Backspace')));
+      else {const c=oskShift&&!oskSym?ch.toUpperCase():ch;r.append(mkKey(c,'',()=>{oskType(c);if(oskShift){oskShift=false;renderOsk()}}))}
+    }o.append(r)});
+  const last=document.createElement('div');last.className='kr';
+  last.append(mkKey(oskSym?'ABC':'123','w',()=>{oskSym=!oskSym;renderOsk()}),mkKey(',','',()=>oskType(',')),mkKey(' ','sp',()=>oskType(' ')),mkKey('.','',()=>oskType('.')),mkKey('↵','w a',()=>oskKey('Enter')),mkKey('✕','w',()=>{oskDismissed=true;showOsk(false)}));
+  o.append(last);
+}
+function oskRectSync(){if(!DLLMODE)return;if(!oskOn){dll('osk:-');return}
+  setTimeout(()=>{const r=$('osk').getBoundingClientRect();dll('osk:'+Math.round(r.left)+','+Math.round(r.top)+','+Math.round(r.width)+','+Math.round(r.height))},60)}
+function showOsk(on){oskOn=!!on;$('osk').classList.toggle('show',oskOn);if(oskOn)renderOsk();oskRectSync()}
+$('b-kb').onclick=()=>{oskDismissed=false;oskAuto=false;showOsk(!oskOn)};
+addEventListener('focusin',e=>{if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName)&&!/^(checkbox|radio|button|submit|range)$/.test(e.target.type||'')){if(!oskDismissed){oskAuto=true;showOsk(true)}}});
+addEventListener('resize',()=>{if(oskOn)oskRectSync()});
+
+function toHost(m){try{chrome.webview.postMessage(m)}catch{}}
+function dll(c){toHost('cmd:'+c)}
+/* vue native de l'app web : zone centrale (entre la barre d'etat et la barre de gestes), en pixels reels */
+function syncDll(){if(!DLLMODE)return;const a=byId(current);
+  if(a&&a.type==='web'&&!$('recents').classList.contains('show')){const z=uiScale/100,cs=getComputedStyle(document.documentElement);const bar=parseFloat(cs.getPropertyValue('--bar'))||36,gest=parseFloat(cs.getPropertyValue('--gest'))||26;
+    const W=Math.round(innerWidth),H=Math.round(innerHeight),y=Math.round(bar*z);dll('view:'+current+':0,'+y+','+W+','+Math.max(50,H-y-Math.round(gest*z)))}
+  else dll('view:-')}
+addEventListener('resize',()=>syncDll());
+function dbg(t){try{chrome.webview.postMessage(String(t))}catch{}}
+addEventListener('error',e=>dbg('shell erreur: '+e.message+' @'+e.lineno));
+addEventListener('click',e=>dbg('shell clic '+e.clientX+','+e.clientY+' -> '+(e.target.id||e.target.className||e.target.tagName)),true);
+let _mv=0;addEventListener('mousemove',e=>{const n=Date.now();if(n-_mv>1500){_mv=n;{const t=document.elementFromPoint(e.clientX,e.clientY);const f=document.querySelector('.page.show iframe');const r=f&&f.getBoundingClientRect();dbg('shell souris '+e.clientX+','+e.clientY+' sur '+(t&&t.tagName)+'.'+(t&&(t.id||t.className))+' iframe='+(r?Math.round(r.left)+','+Math.round(r.top)+','+Math.round(r.width)+'x'+Math.round(r.height):'-')+' inner='+innerWidth+'x'+innerHeight)}}},true);
+/* vue native visible = app web courante, sauf si la vue "apps ouvertes" est affichee */
+function syncNative(){if(!NATIVE)return;const a=byId(current);
+  toHost({type:'view',id:(a&&a.type==='web'&&!$('recents').classList.contains('show'))?current:null})}
+function show(id){
+  current=id;$('recents').classList.remove('show');
+  $('home').classList.toggle('show',id==='home');$('dock').classList.toggle('hide',id!=='home');
+  for(const [k,p] of pages)p.el.classList.toggle('show',k===id);
+  $('st-title').textContent=id==='home'?'':appName(byId(id));syncNative();syncDll();if(oskOn)showOsk(false);
+}
+function closeApp(id){const p=pages.get(id);if(!p)return;if(NATIVE&&p.app.type==='web')toHost({type:'closeWeb',id});if(DLLMODE&&p.app.type==='web')dll('closeWeb:'+id);p.el.remove();pages.delete(id);order=order.filter(x=>x!==id);
+  if(current===id)show(order.at(-1)||'home');renderRecents()}
+function renderRecents(){
+  const r=$('recents');r.textContent='';
+  if(!order.length){r.innerHTML='<div id="empty"></div>';$('empty').textContent=T('noapps');return}
+  for(const id of [...order].reverse()){
+    const a=byId(id),c=document.createElement('div');c.className='card';
+    const pv=icon(a,'pv');const x=document.createElement('button');x.className='x';x.textContent='✕';
+    x.onclick=e=>{e.stopPropagation();closeApp(id)};pv.append(x);
+    const t=document.createElement('b');t.textContent=appName(a);c.append(pv,t);c.onclick=()=>openApp(id);r.append(c);
+  }
+}
+$('b-home').onclick=()=>show('home');
+$('b-up').onclick=()=>doScroll(-260);$('b-dn').onclick=()=>doScroll(260);
+/* defilement du contenu actif (page web, app ou reglages) : la molette est envoyee par le DLL au centre de la zone */
+function doScroll(dy){if(DLLMODE)dll('scroll:'+dy);else{const el=document.querySelector('.page.show .settings')||document.scrollingElement;(el||document.body).scrollBy({top:dy,behavior:'smooth'})}}
+$('b-back').onclick=()=>{
+  const p=pages.get(current);if(p){const f=p.el.querySelector('iframe');if(f)post(f,{type:'back'})}
+  if(NATIVE&&p&&p.app.type==='web'){toHost({type:'navBack',id:current});return}
+  if(DLLMODE&&p&&p.app.type==='web'){dll('navBack:'+current);return}
+  goBackDefault()};
+function goBackDefault(){const i=order.indexOf(current);if(current!=='home'&&i>0)show(order[i-1]);else show('home')}
+$('b-rec').onclick=()=>{const r=$('recents');if(r.classList.toggle('show'))renderRecents();syncNative();syncDll()};
+$('recents').onclick=e=>{if(e.target.id==='recents'||e.target.id==='empty'){$('recents').classList.remove('show');syncNative();syncDll()}};
+
+let settingsEl=null;
+const KEYSYM={Up:'↑',Down:'↓',Left:'←',Right:'→',Enter:'↵',Backspace:'⌫',PageUp:'Page ↑',PageDown:'Page ↓'};
+const ACTIONS=['toggle','up','down','left','right','click','back','home','scrollup','scrolldown'];
+function settingsPage(){
+  const el=document.createElement('div');el.className='page app';el.style.background='linear-gradient(160deg,#0b1220,#141c2e)';
+  settingsEl=el;buildSettings(el);return el;
+}
+function rebuildSettings(){if(settingsEl)buildSettings(settingsEl)}
+function loadDrive(){try{const j=JSON.parse(localStorage.getItem('drive.cfg')||'null');if(j){if(j.theme&&!j.variant)j.variant='auto';return Object.assign({variant:'auto',accent:'',layout:'',units:'kmh'},j,{show:Object.assign({},j.show||{})})}}catch{}return {variant:'auto',accent:'',layout:'',units:'kmh',show:{}}}
+function mk(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+function buildSettings(el){
+  const keep=el.querySelector('.settings');const sc=keep?keep.scrollTop:0;el.textContent='';
+  const root=mk('div','settings');
+  const about=mk('div','glass');about.style.cssText='padding:18px 22px;margin-bottom:18px';
+  about.append(mk('b',null,'Farbound Tab S1'));about.firstChild.style.fontSize='22px';
+  const sub=mk('div',null,'Farbound OS 1.0 « Horizon » · Farbound Studios');sub.style.cssText='color:var(--sub);margin-top:4px';about.append(sub);root.append(about);
+  /* Langue */
+  root.append(mk('h2',null,T('s_lang')));
+  const lr=mk('div','chips');
+  const addLang=(code,label)=>{const b=mk('button','chip'+((langPref===code)?' on':''),label);b.onclick=()=>{langPref=code;store('tab.lang',code);applyLang()};lr.append(b)};
+  addLang('auto',T('s_auto'));for(const [c,n] of LANGS)addLang(c,n);root.append(lr);
+  /* Taille */
+  root.append(mk('h2',null,T('s_size')));
+  const sr=mk('div','chips');
+  for(const v of [60,70,80,90,100,115,130]){const b=mk('button','chip'+(uiScale===v?' on':''),v+' %');b.onclick=()=>{uiScale=v;store('tab.scale',v);applyScale();rebuildSettings()};sr.append(b)}
+  root.append(sr);
+
+  /* Farbound Drive : variantes (par marque) + personnalisation. Config : localStorage 'drive.cfg' (lue par la page drive) */
+  root.append(mk('h2',null,T('d_title')));
+  const DC=loadDrive();const saveDrive=()=>{store('drive.cfg',DC);dll('driveCfg:'+JSON.stringify(DC));rebuildSettings()};
+  const allV=(window.DRIVE_VARIANTS||[]).concat(USERVARS);
+  root.append(mk('p',null,T('d_variant')));
+  const tr=mk('div','chips');
+  const chipV=(id,label)=>{const b=mk('button','chip'+(DC.variant===id?' on':''),label);b.onclick=()=>{DC.variant=id;saveDrive()};tr.append(b)};
+  chipV('auto',T('d_auto'));for(const v of allV)chipV(v.id,v.name);root.append(tr);
+  root.append(mk('p',null,T('d_layout')));
+  const lr2=mk('div','chips');
+  const chipL=(id,label)=>{const b=mk('button','chip'+((DC.layout||'')===id?' on':''),label);b.onclick=()=>{DC.layout=id;saveDrive()};lr2.append(b)};
+  chipL('',T('d_layoutauto'));for(const [id,k2] of [['classic','d_classic'],['sport','d_sport'],['minimal','d_minimal'],['wide','Wide'],['tech','Tech']])chipL(id,I18N.en[k2]?T(k2):k2);root.append(lr2);
+  root.append(mk('p',null,T('d_accent')));
+  const ar=mk('div','chips');
+  for(const c of ['','#f0a30a','#ffd400','#3b82f6','#7fd3ff','#2ecc71','#ff3b3b','#b388ff','#ffffff']){const b=mk('button','chip'+((DC.accent||'')===c?' on':''),c?'●':'Auto');if(c)b.style.color=c;b.onclick=()=>{DC.accent=c;saveDrive()};ar.append(b)}root.append(ar);
+  root.append(mk('p',null,T('d_units')));
+  const ur=mk('div','chips');for(const u of ['kmh','mph']){const b=mk('button','chip'+(DC.units===u?' on':''),u==='kmh'?'km/h':'mph');b.onclick=()=>{DC.units=u;saveDrive()};ur.append(b)}root.append(ur);
+  root.append(mk('p',null,T('d_show')));
+  const sr2=mk('div','chips');for(const k2 of ['limit','clock','odo','fuel','adblue','temp','range','cruise','gear','rpm']){const on=DC.show[k2]!==false;const b=mk('button','chip'+(on?' on':''),T('d_'+k2));b.onclick=()=>{DC.show[k2]=!on;saveDrive()};sr2.append(b)}root.append(sr2);
+  root.append(mk('p',null,T('d_add')));
+  /* Zoom des apps web */
+  root.append(mk('h2',null,T('s_appzoom')));
+  const zr=mk('div','chips');for(const v of [90,100,110,125,150,175,200]){const b=mk('button','chip'+(appZoom===v?' on':''),v+' %');b.onclick=()=>{appZoom=v;store('tab.appzoom',v);dll('appzoom:'+v);rebuildSettings()};zr.append(b)}root.append(zr);
+  /* Touches */
+  root.append(mk('h2',null,T('s_keys')));root.append(mk('p',null,T('s_keys_help')));
+  const keys=(cfgState&&cfgState.keys)||{};const binding=cfgState&&cfgState.binding;
+  const tbl=mk('div','keys');
+  for(const a of ACTIONS){
+    const row=mk('div','krow');row.append(mk('span','kn',T('a_'+a)));
+    const kv=keys[a]||'?';const kb=mk('span','kv'+(binding===a?' wait':''),binding===a?T('s_press'):(KEYSYM[kv]||kv));row.append(kb);
+    const b=mk('button','btn s',T('s_change'));b.onclick=()=>toHost('cmd:bind:'+a);row.append(b);tbl.append(row);
+  }
+  root.append(tbl);
+  const rb=mk('button','btn d',T('s_reset'));rb.style.marginTop='10px';rb.onclick=()=>toHost('cmd:reset-keys');root.append(rb);
+  /* Fond d'ecran */
+  root.append(mk('h2',null,T('s_wall')));
+  const wr=mk('div');wr.style.cssText='display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0';
+  for(const k in WALLS){const sw=mk('button');sw.style.cssText='width:64px;height:40px;border-radius:12px;border:2px solid '+((wallCfg.t==='preset'&&wallCfg.v===k)?'var(--accent)':'#fff3')+';cursor:pointer;background:'+(WALLS[k]||'linear-gradient(160deg,#0b1220,#101a2c 55%,#1a1424)');sw.onclick=()=>{setWall({t:'preset',v:k});rebuildSettings()};wr.append(sw)}
+  const col=mk('input');col.type='color';col.value=wallCfg.t==='color'?wallCfg.v:'#1b2a4a';col.title=T('s_wall_color');col.style.cssText='width:64px;height:40px;padding:0;border:0;background:none;cursor:pointer';col.onchange=()=>setWall({t:'color',v:col.value});wr.append(col);
+  const fi=mk('input');fi.type='file';fi.accept='image/*';fi.style.display='none';fi.onchange=()=>{if(fi.files[0])wallFromFile(fi.files[0])};
+  const fb=mk('button','btn s',T('s_wall_img'));fb.onclick=()=>fi.click();wr.append(fb,fi);root.append(wr);
+  const wu=mk('input');wu.placeholder=T('s_wall_url');root.append(wu);const wb=mk('button','btn',T('s_wall_ok'));wb.onclick=()=>{if(/^https?:\/\//.test(wu.value.trim()))setWall({t:'image',v:wu.value.trim()})};root.append(wb);
+  /* Disposition */
+  root.append(mk('h2',null,T('s_layout')));root.append(mk('p',null,T('s_layout_help')));
+  const lrst=mk('button','btn d',T('s_layout_reset'));lrst.onclick=()=>{layout={};store('tab.layout',layout);renderGrid()};root.append(lrst);
+  /* Apps */
+  root.append(mk('h2',null,T('s_apps')));root.append(mk('p',null,T('s_apps_help')));
+  const inp=mk('input');inp.placeholder='https://exemple.com/app/manifest.json';root.append(inp);
+  const add=mk('button','btn',T('s_install'));root.append(add);
+  const ul=mk('ul');
+  for(const a of userApps){const li=mk('li',null,a.name);const b=mk('button','btn d',T('s_remove'));
+    b.onclick=()=>{closeApp(a.id);userApps=userApps.filter(x=>x!==a);store('tablet.apps',userApps);renderGrid();rebuildSettings()};li.append(b);ul.append(li)}
+  root.append(ul);
+  add.onclick=async()=>{
+    const u=inp.value.trim();if(!/^https?:\/\//.test(u)&&!u.startsWith('apps/'))return;
+    let m;
+    try{const j=await (await fetch(u)).json();m={id:j.id||('u'+Date.now()),name:j.name||j.short_name||u,glyph:'puzzle',color:j.color||j.theme_color,url:new URL(j.start_url||j.url||'.',new URL(u,location.href)).href,type:j.type||'local'}}
+    catch{let h=u;try{h=new URL(u).hostname}catch{}m={id:'u'+Date.now(),name:h,glyph:'puzzle',url:u,type:'web'}}
+    userApps.push(m);store('tablet.apps',userApps);renderGrid();rebuildSettings()};
+  /* A propos / mises a jour */
+  root.append(mk('h2',null,T('s_about')));
+  root.append(mk('p',null,'Farbound Tab S1 · Farbound OS · '+T('s_version')+' '+TABLET_VERSION));
+  const um=mk('p',null,updState==='checking'?T('s_upd_checking'):updState==='avail'?T('s_upd_avail')+' '+updInfo.tag:updState==='err'?T('s_upd_err'):updState==='none'?T('s_upd_none'):'');
+  if(updState==='avail')um.style.color='var(--accent)';root.append(um);
+  if(updState==='avail'){root.append(mk('p',null,T('s_upd_where')));if(updInfo.notes)root.append(mk('p',null,updInfo.notes))}
+  const ub=mk('button','btn',T('s_upd_check'));ub.onclick=()=>checkUpdate(true);root.append(ub);
+  el.append(root);root.scrollTop=sc;
+  const sb=mk('div','sbtns');const up=mk('button',null,'▲'),dn=mk('button',null,'▼');up.onclick=()=>root.scrollBy({top:-150,behavior:'smooth'});dn.onclick=()=>root.scrollBy({top:150,behavior:'smooth'});sb.append(up,dn);el.append(sb);
+}
+
+let last={},liveAt=0,RADIOS=null,MUSIC=null;
+function post(f,msg){try{f.contentWindow.postMessage(Object.assign({tablet:1},msg),'*')}catch{}}
+function broadcast(msg){for(const p of pages.values()){const f=p.el.querySelector('iframe');if(f)post(f,msg)}}
+function connect(){
+  const ws=new WebSocket('ws://'+location.host+'/ws');
+  ws.onmessage=e=>{try{const j=JSON.parse(e.data);if(j.route!==undefined||j.cmd!==undefined)return;
+    last=j;liveAt=performance.now();broadcast({type:'telemetry',data:j})}catch{}};
+  ws.onclose=()=>setTimeout(connect,2000);
+}
+if(location.protocol.startsWith('http')&&!DLLMODE){try{connect()}catch(e){}}
+if(window.chrome&&chrome.webview)chrome.webview.addEventListener('message',e=>{const d=e.data;
+  if(typeof d!=='string')return;
+  if(d.startsWith('map:'))broadcast({type:'gamemap',data:d.slice(4)});
+  else if(d==='ptr:js')JSPTR=true;
+  else if(d==='ptr:on'){$('ptr').style.display='block';$('touchbadge').style.display='block'}
+  else if(d==='ptr:off'){$('ptr').style.display='none';$('touchbadge').style.display='none'}
+  else if(d.startsWith('ptr:')){const [x,y,dn]=d.slice(4).split(',').map(Number);const p=$('ptr');p.style.left=x+'px';p.style.top=y+'px';p.classList.toggle('down',!!dn);if(JSPTR)jsPtr(x,y,!!dn)}
+  else if(d.startsWith('cfg:')){try{cfgState=JSON.parse(d.slice(4));if(cfgState.lang){gameLang=cfgState.lang;}if(langPref==='auto')applyLang();else rebuildSettings()}catch{}}
+  else if(d==='osk:auto:1'){if(!oskDismissed){oskAuto=true;showOsk(true)}}
+  else if(d==='osk:auto:0'){oskDismissed=false;if(oskAuto)showOsk(false)}
+  else if(d.startsWith('variants:')){try{loadUserVars(JSON.parse(d.slice(9)))}catch{}}
+  else if(d.startsWith('radios:')){try{RADIOS=JSON.parse(d.slice(7));broadcast({type:'radios',data:RADIOS})}catch{}}
+  else if(d.startsWith('music:')){try{MUSIC=JSON.parse(d.slice(6));broadcast({type:'music',data:MUSIC})}catch{}}
+  else if(d==='key:back')$('b-back').click();
+  else if(d==='key:back2')goBackDefault();
+  else if(d==='key:home')$('b-home').click();
+  else if(d.startsWith('tel:')){try{const j=JSON.parse(d.slice(4));last=j;liveAt=j.live?performance.now():liveAt;broadcast({type:'telemetry',data:j})}catch{}}});
+addEventListener('message',e=>{const m=e.data;if(!m||!m.tablet)return;
+  if(m.type==='open')openApp(m.id);else if(m.type==='home')show('home');
+  else if(m.type==='log')dbg('app: '+m.msg);
+  else if(m.type==='cmd'){toHost('cmd:'+m.cmd);if(m.cmd==='radios?'&&RADIOS)broadcast({type:'radios',data:RADIOS});if(m.cmd==='music?'&&MUSIC)broadcast({type:'music',data:MUSIC})}
+  else if(m.type==='store:install'&&m.app&&m.app.id){const a=m.app;userApps=userApps.filter(x=>x.id!==a.id);userApps.push({id:a.id,name:a.name,glyph:a.glyph||'puzzle',emoji:a.emoji,icon:a.icon,iconFit:a.iconFit,color:a.color,url:a.url,type:a.type||'local',store:1,version:a.version});store('tablet.apps',userApps);renderGrid();rebuildSettings();storeSync()}
+  else if(m.type==='store:remove'){closeApp(m.id);userApps=userApps.filter(x=>x.id!==m.id);store('tablet.apps',userApps);delete layout[m.id];store('tab.layout',layout);renderGrid();rebuildSettings();storeSync()}
+  else if(m.type==='store:list')storeSync()
+  else if(m.type==='nowplaying'){$('np-t').textContent=m.title||'';$('np-s').textContent=m.artist||''}
+  else if(m.type==='hello'){const f=[...pages.values()].map(p=>p.el.querySelector('iframe')).find(f=>f&&f.contentWindow===e.source);if(f){post(f,{type:'telemetry',data:last});post(f,{type:'prefs',lang:curLang(),scale:uiScale})}}});
+$('np').onclick=()=>openApp('radio');
+function storeSync(){const p=pages.get('store');const f=p&&p.el.querySelector('iframe');if(f)post(f,{type:'store:state',tablet:TABLET_VERSION,installed:userApps.map(a=>({id:a.id,version:a.version}))})}
+applyWall();
+const dayFmt=()=>new Intl.DateTimeFormat(LOCALES[curLang()],{weekday:'long',day:'numeric',month:'long'});
+setInterval(()=>{
+  const d=new Date(),h=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
+  $('st-clock').textContent=h;$('c-t').textContent=h;$('c-d').textContent=dayFmt().format(d);
+  const sp=Math.round(last.speed||0);$('st-speed').textContent=sp+' km/h';$('t-speed').textContent=sp;
+  $('t-range').textContent=Math.round(last.fuelRange||0);
+  const pct=Math.max(0,Math.min(100,(last.fuel||0)/(last.fuelCap||600)*100)),fb=$('fuelbar');
+  fb.style.width=pct+'%';fb.style.background=(last.fuelRange||999)<100?'#ff453a':(last.fuelRange||999)<250?'#ffb300':'var(--accent)';
+  $('st-gps').classList.toggle('on',performance.now()-liveAt<2000);
+},500);
+document.getElementById('np').firstElementChild.replaceWith(icon(BUILTIN[1],'ic'));
+$('np').firstElementChild.style.cssText='width:46px;height:46px;border-radius:14px';
+renderGrid();applyLang();applyScale();toHost('cmd:cfg?');dll('appzoom:'+appZoom);dll('variants?');
+{const a=new URLSearchParams(location.search).get('app');if(a&&byId(a))openApp(a)}
+</script>
+</body>
+</html>

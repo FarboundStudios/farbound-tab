@@ -4,7 +4,7 @@
 
 Farbound Tab replaces the stock GPS screen with a full tablet running **Farbound OS**: a live navigation map taken from the game, a radio that plays the game's stations and your music folder, YouTube Music / Deezer / Spotify, an app store, and a customizable instrument cluster ("Farbound Drive") that adapts to your truck brand.
 
-> The tablet itself is distributed in the [**Releases**](../../releases) tab. This repository's source tree only contains **apps** for the Farbound Store (see [`apps/`](apps)).
+> The tablet itself is distributed in the [**Releases**](../../releases) tab. Store **apps** live in [`apps/`](apps); the latest built plugin is in [`plugin/`](plugin).
 
 | Home | Farbound Store |
 |---|---|
@@ -39,11 +39,17 @@ The game must run in **windowed / borderless** mode for the overlay window to be
 
 ## Install
 
-1. Download the latest release from the [Releases](../../releases) tab.
-2. Copy the plugin DLL and its `.ini` into `Euro Truck Simulator 2\bin\win_x64\plugins\` (create the folder if needed).
-3. Start the game; accept the SDK plugin confirmation dialog on the first launch.
+1. Get the plugin from the [Releases](../../releases) tab, or directly from this repository's [`plugin/`](plugin) folder (always the latest build).
+2. Copy the **content** of `plugin/` into `Euro Truck Simulator 2in\win_x64\plugins\` (create `plugins` if needed):
+   ```
+   pluginsarbound-tab.dll
+   pluginsarbound-tab.ini
+   pluginsarbound-tab\dashboard\...
+   ```
+3. Start the game and accept the SDK plugin confirmation dialog on the first launch.
 
-Requirements: Windows 10/11, ETS2 (64-bit) with SDK plugin support, the Microsoft WebView2 Runtime (installed with Windows 11 and Edge).
+Requirements: Windows 10/11, ETS2 (64-bit) with SDK plugin support, the Microsoft WebView2 Runtime (included with Windows 11 and Edge).
+Details: [`plugin/INSTALL.txt`](plugin/INSTALL.txt). Third-party licenses: [`plugin/THIRD_PARTY_NOTICES.txt`](plugin/THIRD_PARTY_NOTICES.txt).
 
 ## Create & add your own apps
 
@@ -56,6 +62,7 @@ The tablet and each app are versioned (semver). **Settings → About** checks th
 ## Repository layout
 
 ```
+plugin/               the tablet: farbound-tab.dll + .ini + dashboard (latest build)
 apps/                 Store apps (source) + apps/index.json catalog read by the Store
   apptest/            demo app
   _template/          starting point for a new app
