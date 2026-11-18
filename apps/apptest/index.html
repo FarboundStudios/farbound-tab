@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>App Test</title>
+<style>
+:root{--ac:#ff8a4c;--bg:#1a1020;--card:#2a1a33}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:#fff;font-family:"Segoe UI Variable","Segoe UI",system-ui,sans-serif;overflow:auto}
+main{padding:18px 24px;display:grid;gap:14px;max-width:760px;margin:auto}
+h1{margin:0;font-size:24px}p{margin:0;color:#c9b7d4}
+.card{background:var(--card);border-radius:18px;padding:16px;display:grid;gap:10px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.big{font-size:44px;font-weight:800;font-variant-numeric:tabular-nums}
+button{background:var(--ac);color:#2b1000;border:0;border-radius:14px;padding:10px 18px;font-size:16px;font-weight:700;cursor:pointer}
+input{background:#120a18;color:#fff;border:2px solid #4a2f58;border-radius:12px;padding:10px 12px;font-size:16px;outline:none;flex:1;min-width:160px}input:focus{border-color:var(--ac)}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--ac);border-radius:6px;border:2px solid var(--bg)}
+</style></head><body>
+<main>
+ <h1>🧪 App Test</h1>
+ <p id="intro">Si tu vois cette page, l’installation d’une app fonctionne.</p>
+ <div class="card"><b id="l-tel">Télémétrie en direct</b>
+  <div class="row"><span class="big" id="spd">0</span><span>km/h</span><span id="live" style="margin-left:auto"></span></div>
+  <p id="pos"></p></div>
+ <div class="card"><b id="l-click">Clic</b>
+  <div class="row"><button id="plus">+1</button><span class="big" id="n">0</span><button id="rst" style="background:#4a2f58;color:#fff">0</button></div></div>
+ <div class="card"><b id="l-in">Saisie</b>
+  <div class="row"><input id="txt" placeholder="Écris ici…"><button id="clr">✕</button></div><p id="echo"></p></div>
+ <div class="card"><b id="l-sc">Défilement</b><p>↓</p><div style="height:380px"></div><p>↑ fin de la page</p></div>
+</main>
+<script>
+'use strict';
+const L={fr:{intro:'Si tu vois cette page, l’installation d’une app fonctionne.',tel:'Télémétrie en direct',click:'Clic',inp:'Saisie',ph:'Écris ici…',sc:'Défilement',live:'En direct',off:'Hors-ligne',you:'Tu as écrit : '},
+ en:{intro:'If you can see this page, installing an app works.',tel:'Live telemetry',click:'Click',inp:'Input',ph:'Type here…',sc:'Scrolling',live:'Live',off:'Offline',you:'You typed: '}};
+let lang='fr',tel={};const $=i=>document.getElementById(i),t=k=>(L[lang]||L.en)[k];
+const send=m=>parent.postMessage(Object.assign({tablet:1},m),'*');
+function texts(){$('intro').textContent=t('intro');$('l-tel').textContent=t('tel');$('l-click').textContent=t('click');$('l-in').textContent=t('inp');$('txt').placeholder=t('ph');$('l-sc').textContent=t('sc')}
+function draw(){$('spd').textContent=Math.round(tel.speed||0);$('live').textContent=tel.live?'● '+t('live'):'○ '+t('off');$('pos').textContent=tel.x!=null?'x '+Math.round(tel.x)+'  y '+Math.round(tel.y)+'  cap '+Math.round(tel.heading||0)+'°':''}
+let n=0;$('plus').onclick=()=>{$('n').textContent=++n};$('rst').onclick=()=>{n=0;$('n').textContent=0};
+$('txt').oninput=()=>{$('echo').textContent=t('you')+$('txt').value};$('clr').onclick=()=>{$('txt').value='';$('echo').textContent=''};
+addEventListener('message',e=>{const m=e.data;if(!m||!m.tablet)return;
+  if(m.type==='telemetry'){tel=m.data||{};draw()}else if(m.type==='prefs'&&m.lang){lang=m.lang;texts();draw()}});
+texts();draw();send({type:'hello'});
+</script></body></html>

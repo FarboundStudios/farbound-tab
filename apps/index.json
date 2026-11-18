@@ -1,0 +1,15 @@
+{
+  "apps": [
+    {
+      "id": "apptest",
+      "name": { "fr": "App Test", "en": "Test App" },
+      "description": { "fr": "App de démonstration : télémétrie en direct, saisie de texte, compteur.", "en": "Demo app: live telemetry, text input, counter." },
+      "author": "Farbound Studios",
+      "version": "1.0.0",
+      "emoji": "🧪",
+      "color": "linear-gradient(145deg,#ffb347,#ff5f6d)",
+      "type": "local",
+      "entry": "apps/apptest/index.html"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mon app</title>
+<style>
+  html,body{margin:0;height:100%;background:#101826;color:#fff;font-family:"Segoe UI",system-ui,sans-serif}
+  main{padding:20px}
+  ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#4aa3ff;border-radius:6px}
+</style></head><body>
+<main>
+  <h1>Mon app</h1>
+  <p>Vitesse : <b id="spd">0</b> km/h</p>
+</main>
+<script>
+// Protocole tablette : on dit bonjour, puis on reçoit la télémétrie (~10/s) et les préférences (langue).
+const send = m => parent.postMessage(Object.assign({ tablet: 1 }, m), '*');
+addEventListener('message', e => {
+  const m = e.data; if (!m || !m.tablet) return;
+  if (m.type === 'telemetry') document.getElementById('spd').textContent = Math.round(m.data.speed || 0);
+  if (m.type === 'prefs') document.documentElement.lang = m.lang;   // fr, en, de, it, es
+});
+send({ type: 'hello' });
+// Autres messages possibles : send({type:'home'}) retour accueil ; send({type:'open',id:'radio'}) ouvrir une autre app.
+</script></body></html>
